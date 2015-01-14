@@ -1,0 +1,28 @@
+{
+  "name": "ZmHtmlEditor",
+  "version": "0.0.0",
+  "authors": [
+    "Philipp Tkachev <zoonman@gmail.com>"
+  ],
+  "description": "An simple, JavaScript WYSIWYG HTML Editor component",
+  "main": "editor.js",
+  "dependencies": {
+    "font-awesome": "~4.2.0"
+  },
+  "moduleType": [
+    "globals"
+  ],
+  "keywords": [
+    "WYSIWYG",
+    "Editor"
+  ],
+  "license": "MIT",
+  "homepage": "https://www.zoonman.com/projects/zmhtmleditor",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

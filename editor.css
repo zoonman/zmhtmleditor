@@ -1,0 +1,148 @@
+.ZmHtmlEditor .toolbar  {
+    background: ThreeDFace;
+    border-top: solid 1px ThreeDLightShadow;
+    border-bottom: solid 1px ThreeDDarkShadow;
+    height: 27px;
+    padding: 1px;
+}
+
+.ZmHtmlEditor .area {
+    border: solid 1px #ffffff;
+    width: 100%;
+    margin: 0px auto;
+    display: block;
+    box-shadow: 0px 0px 100px -100px #555555;
+}
+
+.ZmHtmlEditor .toolbar  .middle {
+    margin: 0px auto;
+    width: 720px;
+
+}
+.ZmHtmlEditor .toolbar  .spacer {
+    border-left: 1px solid rgba(0,0,0,0.1);
+    border-right: 1px solid rgba(255,255,255,0.5);
+    display: inline-block;
+    height: 12px;
+    line-height: 1;
+    margin-left: 3px;
+    margin-right: 3px;
+    width: 1px;
+}
+
+.ZmHtmlEditor .toolbar  .fa {
+    margin-right: 1px;
+    padding: 3px;
+    text-align: center;
+    height: 24px;
+    width: 24px;
+    color: #000000;
+    cursor: hand;
+    /*border: 1px solid rgba(255, 255, 255, 0.1);
+    border-right-color: rgba(0, 0, 0, 0.01);
+    border-bottom-color: rgba(0, 0, 0, 0.01);*/
+}
+.ZmHtmlEditor .toolbar  .fa:before {
+    cursor: default;
+}
+
+.ZmHtmlEditor .toolbar  .fa:hover {
+    /*border: 1px solid rgba(255, 255, 255, 0.5);
+    border-right-color: rgba(0, 0, 0, 0.5);
+    border-bottom-color: rgba(0, 0, 0, 0.5);*/
+    color: HighlightText;
+    background-color: Highlight;
+}
+
+.ZmHtmlEditor .dropdown {
+    display: block;
+    font-size: 12px;
+    line-height: 1.4;
+    opacity: 0;
+    position: absolute;
+    visibility: visible;
+    z-index: 1070;
+}
+
+.ZmHtmlEditor .dropdown .arrow {
+    height: 0;
+    position: absolute;
+    width: 0;
+    border: 5px solid rgba(0, 0, 0, 0);
+    border-top-width: 0;
+    border-bottom-color: ThreeDDarkShadow;
+    left: 50%;
+    margin-left: -5px;
+    top: 0;
+}
+
+.ZmHtmlEditor .dropdown .inner {
+    font-family: Tahoma, Arial, sans-serif;
+    margin-top: 4px;
+    max-width: 200px;
+    padding: 5px 10px;
+    border: solid 1px ThreeDDarkShadow;
+    background: ButtonFace;
+}
+
+.ZmHtmlEditor .progress-item {
+    width: 200px;
+    position: relative;
+    height: 20px;
+    border: solid 1px WindowFrame;
+
+}
+
+.ZmHtmlEditor .progress-item .filename {
+    width: 160px;
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 10px;
+    line-height: 18px;
+    left: 0px;top: 0px;
+    position: absolute;
+    overflow-x: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    z-index: 100;
+}
+
+.ZmHtmlEditor .progress-item .progress-position {
+    left: 0px;top: 0px;
+    position: absolute;
+    width: 75%;
+    background: Highlight;
+    height: 18px;
+    z-index: 97;
+    opacity: 0.1;
+
+}
+
+.ZmHtmlEditor .progress-item .progress-cancel {
+    left: 183px;top: 0px;
+    position: absolute;
+    width: 16px;
+    height: 18px;
+    z-index: 100;
+    line-height: 18px;
+    cursor: pointer;
+}
+.ZmHtmlEditor .progress-item .progress-retry {
+    left: 160px;top: 0px;
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    z-index: 100;
+    cursor: pointer;
+    visibility: hidden;
+}
+
+#uploads {
+    position: absolute;
+    top: 32px;
+    right: 10px;
+    width: 200px;
+    height: 350px;
+    overflow-y: auto;
+    max-height: 50%;
+}
