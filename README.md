@@ -1,4 +1,4 @@
-# WYSUWYG Html Editor
+# WYSIWYG Html Editor
 
 Little html editor written on Javascript. 
 
