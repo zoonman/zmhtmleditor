@@ -98,9 +98,8 @@
 
     window.addEventListener('resize', this.adaptSize.bind(this), false);
 
-    //document.getElementById(this.iframeId).addEventListener('load', this.enableEditing.bind(this), false);
     window.setTimeout( this.enableEditing.bind(this), 100);
-    // this.enableEditing();
+    
   };
 
   zmEditor.prototype.getContentDocument = function() {
@@ -359,7 +358,7 @@
     ), done || this.uploadFileDone.bind(this));
   };
 
-
+// extending global window namespace
   window.ZmHtmlEditor = zmEditor;
 
 }());
