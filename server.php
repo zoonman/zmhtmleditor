@@ -34,6 +34,4 @@ if (!empty($_FILES)) {
     }
 }
 
-sleep(1);
-
 echo json_encode($results);
