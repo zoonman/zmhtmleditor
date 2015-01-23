@@ -89,11 +89,11 @@
 
     this.options = extend(options, defaultOptions);
     this.iframeId = this.randomId('ZmEditor');
+      this.initElement = document.getElementById(this.options.id);
+    this.initHtml = this.initElement.innerHTML;
 
-    this.initHtml = document.getElementById(this.options.id).innerHTML;
-
-    document.getElementById(this.options.id).className += ' ZmHtmlEditor';
-    document.getElementById(this.options.id).innerHTML = this.generateToolbarHtml() +
+    this.initElement.className += ' ZmHtmlEditor';
+    this.initElement.innerHTML = this.generateToolbarHtml() +
     '<iframe class="area" id="' + this.iframeId + '"><'+'/iframe>';
 
     window.addEventListener('resize', this.adaptSize.bind(this), false);
