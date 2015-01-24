@@ -89,7 +89,7 @@
 
     this.options = extend(options, defaultOptions);
     this.iframeId = this.randomId('ZmEditor');
-      this.initElement = document.getElementById(this.options.id);
+    this.initElement = document.getElementById(this.options.id);
     this.initHtml = this.initElement.innerHTML;
 
     this.initElement.className += ' ZmHtmlEditor';
@@ -102,12 +102,16 @@
     
   };
 
+  zmEditor.prototype.getIframe = function() {
+    return document.getElementById(this.iframeId);
+  };
+
   zmEditor.prototype.getContentDocument = function() {
-    return document.getElementById(this.iframeId).contentDocument;
+    return this.getIframe().contentDocument;
   };
 
   zmEditor.prototype.setFocus = function() {
-    return document.getElementById(this.iframeId).focus();
+    return this.getIframe().focus();
   };
 
   zmEditor.prototype.showDropTarget = function() {
@@ -190,7 +194,7 @@
     this.getContentDocument().designMode = "on";
 
 
-    document.getElementById(this.iframeId).contentWindow.focus();
+    this.getIframe().contentWindow.focus();
 
     var d = this.getContentDocument();
         d.execCommand('insertHTML', false, this.initHtml);
