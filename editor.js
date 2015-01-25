@@ -143,7 +143,7 @@
   zmEditor.prototype.adaptSize = function() {
     var height = document.getElementById(this.options.id).clientHeight;
     var iframeHeight = height - 28;
-    document.getElementById(this.iframeId).setAttribute('height', iframeHeight);
+    return this.getIframe().setAttribute('height', iframeHeight);
   };
 
   zmEditor.prototype.dropHandler = function(e) {
@@ -219,13 +219,22 @@
 
     document.getElementById('file' + this.iframeId).addEventListener('change', fileInputChangedHandler, false);
 
-    this.getContentDocument().addEventListener('dragenter', this.showDropTarget.bind(this), false);
+    d.addEventListener('dragenter', this.showDropTarget.bind(this), false);
 
-    this.getContentDocument().addEventListener('dragover', this.showDropTarget.bind(this), false);
+    d.addEventListener('dragover', this.showDropTarget.bind(this), false);
 
-    this.getContentDocument().addEventListener('dragleave', this.hideDropTarget.bind(this), false);
+    d.addEventListener('dragleave', this.hideDropTarget.bind(this), false);
 
-    this.getContentDocument().addEventListener('drop', this.dropHandler.bind(this), false);
+    d.addEventListener('drop', this.dropHandler.bind(this), false);
+
+    var heads = d.getElementsByTagName('head');
+    if (this.options.customCssUrl && heads.length > 0) {
+      var link = document.createElement("link");
+      link.href = this.options.customCssUrl;
+      link.type = "text/css";
+      link.rel = "stylesheet";
+      heads[0].appendChild(link);
+    }
   };
 
 
@@ -246,7 +255,7 @@
     var fu = this;
     fu.id = 'uploader' + Math.random().toString().replace('0.', '');
 
-    console.log(file.constructor.name)
+    console.log(file.constructor.name);
 
     // create layout
     var uHtml = '';
@@ -341,7 +350,7 @@
                 .execCommand('insertImage', false, result.url);
             break;
           default:
-            var html = '<a href="' + result.url + '" target="_blank">' +
+            var html = ' <a href="' + result.url + '" target="_blank">' +
                 result.name + '</a>&nbsp;';
             this.getContentDocument().execCommand('insertHTML', false, html);
         }
