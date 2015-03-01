@@ -24,15 +24,12 @@ $extensionsWhiteList = [
     'zip', 'rar', '7zip', 'bzip', 'tar', 'gz' // archives
 ];
 
-
 // make this directory writable to your server
 $uploadDirectory = 'files/';
 $results = array();
 if (!empty($_FILES)) {
     foreach($_FILES as $file) {
-
         $ext = pathinfo(strtolower($file['name']), PATHINFO_EXTENSION);
-
         if (in_array($ext, $extensionsWhiteList)) {
             // server path
             $targetFilePath = $uploadDirectory . basename($file['name']);
@@ -44,7 +41,6 @@ if (!empty($_FILES)) {
                 'type' => $file['type'],
                 'url' => $targetFileUrl
             );
-
         }
     }
 }
