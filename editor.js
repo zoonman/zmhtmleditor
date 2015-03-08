@@ -150,7 +150,9 @@
   };
 
   zmEditor.prototype.setPopupText = function(text) {
-    return document.getElementById('popupText' + this.iframeId).innerHTML = text;
+    if (text) {
+      return document.getElementById('popupText' + this.iframeId).innerHTML = text;
+    }
   };
 
   zmEditor.prototype.generateToolbarHtml = function() {
@@ -167,7 +169,7 @@
 
     html += '</div></div><div class="dropdown"><div class="arrow"></div><div class="inner"></div></div>';
     html += '<input type="file" id="file' + this.iframeId + '" multiple style="display:none">';
-    html += '<div id="popup' + this.iframeId + '" class="popup"><i class="fa fa-2x fa-microphone"></i><span class="popupText' + this.iframeId + '"></span></div>';
+    html += '<div id="popup' + this.iframeId + '" class="popup"><i class="fa fa-2x fa-microphone"></i><span id="popupText' + this.iframeId + '"></span></div>';
     return html;
   };
 
@@ -313,6 +315,7 @@
     this.recognizing = false;
     this.getMicrophoneButton().classList.remove('recognizing');
     this.getPopupWindow().classList.remove('active');
+    this.setPopupText('');
   };
 
   zmEditor.prototype.speechRecognitionResult = function (event) {
@@ -324,13 +327,14 @@
           final_transcript += event.results[i][0].transcript;
         } else {
           interim_transcript += event.results[i][0].transcript;
-          this.setPopupText(interim_transcript).bind(this);
+          this.setPopupText(interim_transcript);
         }
       }
 
       if (final_transcript.length > 0) {
-        this.setPopupText('').bind(this);
-        this.getContentDocument().execCommand('insertHTML', false, final_transcript);
+        this.setPopupText('');
+        console.log(final_transcript);
+        this.getContentDocument().execCommand('insertText', false, final_transcript + ' ');
       }
 
     }
@@ -339,6 +343,7 @@
   zmEditor.prototype.speechRecognitionStart = function (data) {
     this.recognizing = true;
     this.getMicrophoneButton().classList.add('recognizing');
+    this.setPopupText('');
     this.getPopupWindow().classList.add('active');
   };
 
