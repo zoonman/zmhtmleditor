@@ -50,6 +50,11 @@
     border-right-color: rgba(0, 0, 0, 0.01);
     border-bottom-color: rgba(0, 0, 0, 0.01);*/
 }
+
+.ZmHtmlEditor .toolbar  .recognizing {
+    color: #ff0000;
+}
+
 .ZmHtmlEditor .toolbar  .fa:before {
     cursor: default;
 }
@@ -99,6 +104,50 @@
     height: 20px;
     border: solid 1px WindowFrame;
 
+}
+
+.ZmHtmlEditor .popup {
+    background-color: lemonchiffon;
+    border: 1px solid windowframe;
+    box-shadow: 1px 1px 50px -10px;
+    left: 50vw;
+    border-radius: 15px;
+    margin-left: -15vw;
+    padding: 20px;
+    font-family: 'Trebuchet MS', 'Geneva CE', lucida, sans-serif;
+    position: absolute;
+    top: 100px;
+    width: 30vw;
+    display: none;
+}
+
+.ZmHtmlEditor .popup.active {
+    display: block;
+}
+
+.ZmHtmlEditor .popup.active i   {
+    vertical-align: middle;
+    -webkit-animation: micDimming 3s infinite;
+    animation: micDimming 3s infinite;
+}
+
+.ZmHtmlEditor .popup.active span {
+    color: #777;
+    line-height: 1em;
+    padding-left: 10px;
+    vertical-align: middle;
+}
+
+@-webkit-keyframes micDimming {
+    0%   { top: 5%; opacity: 1}
+    50%   { top: 5%; opacity: .5 }
+    100% { top: 5%; opacity: 1 }
+}
+
+@keyframes micDimming {
+    0%   { top: 5%; opacity: 1}
+    50%   { top: 5%; opacity: .5 }
+    100% { top: 5%; opacity: 1 }
 }
 
 .ZmHtmlEditor .progress-item .filename {

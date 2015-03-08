@@ -87,6 +87,27 @@
       return a;
     }
 
+    var speechRecognitionEngine = null;
+    if ('SpeechRecognition' in window) {
+      speechRecognitionEngine = window['SpeechRecognition'];
+    }
+    if ('webkitSpeechRecognition' in window) {
+      speechRecognitionEngine = window['webkitSpeechRecognition'];
+    }
+    if ('mozSpeechRecognition' in window) {
+      speechRecognitionEngine = window['mozSpeechRecognition'];
+    }
+
+    if (speechRecognitionEngine) {
+      this.recognition = new speechRecognitionEngine();
+      this.recognition.continuous = true;
+      this.recognition.interimResults = true;
+      defaultOptions.toolbarConfig.push({class: 'microphone', command: 'recognition'});
+    } else {
+      this.recognition = null;
+    }
+
+
     this.options = extend(options, defaultOptions);
     this.iframeId = this.randomId('ZmEditor');
     this.initElement = document.getElementById(this.options.id);
@@ -95,6 +116,8 @@
     this.initElement.className += ' ZmHtmlEditor';
     this.initElement.innerHTML = this.generateToolbarHtml() +
     '<iframe class="area" id="' + this.iframeId + '"><'+'/iframe>';
+
+    this.recognizing = false; // speech recognition is disabled
 
     window.addEventListener('resize', this.adaptSize.bind(this), false);
 
@@ -122,6 +145,13 @@
     document.getElementById('toolbar' + this.iframeId).style.opacity = 1;
   };
 
+  zmEditor.prototype.getPopupWindow = function() {
+    return document.getElementById('popup' + this.iframeId);
+  };
+
+  zmEditor.prototype.setPopupText = function(text) {
+    return document.getElementById('popupText' + this.iframeId).innerHTML = text;
+  };
 
   zmEditor.prototype.generateToolbarHtml = function() {
     var html ='<div class="toolbar" id="toolbar' + this.iframeId + '"><div class="middle">';
@@ -137,6 +167,7 @@
 
     html += '</div></div><div class="dropdown"><div class="arrow"></div><div class="inner"></div></div>';
     html += '<input type="file" id="file' + this.iframeId + '" multiple style="display:none">';
+    html += '<div id="popup' + this.iframeId + '" class="popup"><i class="fa fa-2x fa-microphone"></i><span class="popupText' + this.iframeId + '"></span></div>';
     return html;
   };
 
@@ -174,6 +205,9 @@
         case 'attach':
           this.attach(element.target);
           break;
+        case 'recognition':
+          this.switchSpeechRecognition(element.target);
+          break;
         case 'createLink':
         case 'insertImage':
           var src = window.prompt('Type Image Url here:');
@@ -185,7 +219,6 @@
           this.getContentDocument().execCommand(command, false);
       }
     }
-
   };
 
   zmEditor.prototype.enableEditing = function() {
@@ -196,8 +229,8 @@
 
     this.getIframe().contentWindow.focus();
 
-    var d = this.getContentDocument();
-        d.execCommand('insertHTML', false, this.initHtml);
+    var contentDocument = this.getContentDocument();
+        contentDocument.execCommand('insertHTML', false, this.initHtml);
 
 
     var buttons = document.getElementsByClassName('fa');
@@ -217,17 +250,31 @@
       e.preventDefault();
     };
 
+    if (this.recognition) {
+      this.recognition.addEventListener('start', this.speechRecognitionStart.bind(this), false);
+      this.recognition.addEventListener('end', this.speechRecognitionEnd.bind(this), false);
+      this.recognition.addEventListener('result', this.speechRecognitionResult.bind(this), false);
+      this.recognition.addEventListener('nomatch', this.speechRecognitionNoMatch.bind(this), false);
+      this.recognition.addEventListener('error', this.speechRecognitionErrorHandler.bind(this), false);
+      this.recognition.addEventListener('soundstart', this.speechRecognitionSoundStart.bind(this), false);
+      this.recognition.addEventListener('soundend', this.speechRecognitionSoundEnd.bind(this), false);
+      this.recognition.addEventListener('speechstart', this.speechRecognitionSpeechStart.bind(this), false);
+      this.recognition.addEventListener('speechend', this.speechRecognitionSpeechEnd.bind(this), false);
+      this.recognition.addEventListener('audiostart', this.speechRecognitionAudioStart.bind(this), false);
+      this.recognition.addEventListener('audioend', this.speechRecognitionAudioEnd.bind(this), false);
+    }
+
     document.getElementById('file' + this.iframeId).addEventListener('change', fileInputChangedHandler, false);
 
-    d.addEventListener('dragenter', this.showDropTarget.bind(this), false);
+    contentDocument.addEventListener('dragenter', this.showDropTarget.bind(this), false);
 
-    d.addEventListener('dragover', this.showDropTarget.bind(this), false);
+    contentDocument.addEventListener('dragover', this.showDropTarget.bind(this), false);
 
-    d.addEventListener('dragleave', this.hideDropTarget.bind(this), false);
+    contentDocument.addEventListener('dragleave', this.hideDropTarget.bind(this), false);
 
-    d.addEventListener('drop', this.dropHandler.bind(this), false);
+    contentDocument.addEventListener('drop', this.dropHandler.bind(this), false);
 
-    var heads = d.getElementsByTagName('head');
+    var heads = contentDocument.getElementsByTagName('head');
     if (this.options.customCssUrl && heads.length > 0) {
       var link = document.createElement("link");
       link.href = this.options.customCssUrl;
@@ -237,6 +284,82 @@
     }
   };
 
+  zmEditor.prototype.speechRecognitionErrorHandler = function (err) {
+    console.log(event.error);
+    if (event.error == 'no-speech') {
+      // @todo
+    }
+    if (event.error == 'audio-capture') {
+      // @todo
+    }
+    if (event.error == 'not-allowed') {
+      // @todo
+    }
+    if (event.error) {
+      this.setPopupText(event.error).bind(this);
+    }
+  };
+
+  zmEditor.prototype.speechRecognitionSoundStart = function (data) {    console.log(data);  };
+  zmEditor.prototype.speechRecognitionSoundEnd = function (data) {    console.log(data);  };
+  zmEditor.prototype.speechRecognitionSpeechStart = function (data) {    console.log(data);  };
+  zmEditor.prototype.speechRecognitionSpeechEnd = function (data) {    console.log(data);  };
+  zmEditor.prototype.speechRecognitionAudioStart = function (data) {    console.log(data);  };
+  zmEditor.prototype.speechRecognitionAudioEnd = function (data) {    console.log(data);  };
+  zmEditor.prototype.speechRecognitionNoMatch = function (data) {    console.log(data);  };
+
+  zmEditor.prototype.speechRecognitionEnd = function (data) {
+    console.log(data);
+    this.recognizing = false;
+    this.getMicrophoneButton().classList.remove('recognizing');
+    this.getPopupWindow().classList.remove('active');
+  };
+
+  zmEditor.prototype.speechRecognitionResult = function (event) {
+    console.log(event);
+    var final_transcript = '', interim_transcript = '';
+    if (event.results) {
+      for (var i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          final_transcript += event.results[i][0].transcript;
+        } else {
+          interim_transcript += event.results[i][0].transcript;
+          this.setPopupText(interim_transcript).bind(this);
+        }
+      }
+
+      if (final_transcript.length > 0) {
+        this.setPopupText('').bind(this);
+        this.getContentDocument().execCommand('insertHTML', false, final_transcript);
+      }
+
+    }
+  };
+
+  zmEditor.prototype.speechRecognitionStart = function (data) {
+    this.recognizing = true;
+    this.getMicrophoneButton().classList.add('recognizing');
+    this.getPopupWindow().classList.add('active');
+  };
+
+  zmEditor.prototype.switchSpeechRecognition = function(el) {
+    if (this.recognizing) {
+      //this.recognizing = false;
+      this.recognition.stop();
+    } else {
+      // this.recognizing = true;
+      this.recognition.lang = 'ru-RU';
+      this.recognition.start();
+    }
+  };
+
+  zmEditor.prototype.getMicrophoneButton = function() {
+    var mic = document.getElementsByClassName('fa-microphone');
+    if (mic.length > 0) {
+      return mic[0];
+    }
+    return null;
+  };
 
   zmEditor.prototype.attach = function() {
     document.getElementById('file' + this.iframeId).click();
