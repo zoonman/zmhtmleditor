@@ -14,3 +14,5 @@ Don't forget to install bower components.
   `bower install`
   
 It should pull font-awesome as dependency.   
+
+[Demo](https://www.zoonman.com/files/public/projects/zmhtmleditor/editor.html)
