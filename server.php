@@ -9,9 +9,9 @@
  * @package  Default
  * @author   Philipp Tkachev <zoonman@gmail.com>
  * @date     1/1/15 5:46 PM
- * @license  http://marketmesuite.com/license.txt MMS License
+ * @license  http://www.zoonman.com/license.txt MMS License
  * @version  GIT: 1.0
- * @link     http://marketmesuite.com/
+ * @link     http://www.zoonman.com/
  */
 
 header('Content-Type: application/json');
