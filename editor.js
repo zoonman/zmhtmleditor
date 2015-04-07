@@ -42,7 +42,8 @@
           removeFormat: 'Remove Format',
           save: 'Save',
           attach: 'Attach',
-          uploading: ''
+          uploading: '',
+          recognition: 'Voice Recognition (experimental)'
         },
         toolbarConfig: [
           {class: 'bold', command: 'bold'},

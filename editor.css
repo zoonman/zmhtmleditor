@@ -4,8 +4,9 @@
     border-bottom: solid 1px transparent;
     height: 27px;
     padding: 1px;
-    opacity: 0.02;
-    transition-duration: 100ms;
+    opacity: 0.22;
+    transition-duration: 500ms;
+    transition-timing-function: ease-out;
 }
 
 .ZmHtmlEditor .toolbar:hover  {
@@ -18,12 +19,12 @@
 .ZmHtmlEditor .area {
     border: solid 1px #ffffff;
     width: 100%;
-    margin: 0px auto;
+    margin: 0 auto;
     display: block;
 }
 
 .ZmHtmlEditor .toolbar  .middle {
-    margin: 0px auto;
+    margin: 0 auto;
     width: 720px;
 
 }
@@ -71,7 +72,7 @@
     display: block;
     font-size: 12px;
     line-height: 1.4;
-    opacity: 0;
+    opacity: 0.1;
     position: absolute;
     visibility: visible;
     z-index: 1070;
