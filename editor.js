@@ -109,10 +109,12 @@
     }
 
 
-    this.options = extend(options, defaultOptions);
+    this.options = extend(defaultOptions, options);
     this.iframeId = this.randomId('ZmEditor');
     this.initElement = document.getElementById(this.options.id);
     this.initHtml = this.initElement.innerHTML;
+    this.saved = true;
+    this.saving = false;
 
     this.initElement.className += ' ZmHtmlEditor';
     this.initElement.innerHTML = this.generateToolbarHtml() +
@@ -206,13 +208,13 @@
           this.save(element.target);
           break;
         case 'attach':
+        case 'insertImage':
           this.attach(element.target);
           break;
         case 'recognition':
           this.switchSpeechRecognition(element.target);
           break;
         case 'createLink':
-        case 'insertImage':
           var src = window.prompt('Type Image Url here:');
           if (src) {
             this.getContentDocument().execCommand(command, false, src);
@@ -285,6 +287,61 @@
       link.rel = "stylesheet";
       heads[0].appendChild(link);
     }
+
+    contentDocument.addEventListener('keydown', this.keydownHandler.bind(this), false);
+    window.setInterval(this.saveDocument.bind(this), 2718); // let's make check interval close to e
+  };
+
+  zmEditor.prototype.saveDocument = function() {
+    if (this.saved || this.saving) {
+      // gray out save icon on toolbar
+    } else {
+      this.saving = true;
+      this.save('', this.documentSaved.bind(this));
+      // update toolbar
+    }
+  };
+
+  zmEditor.prototype.documentSaved = function() {
+    this.saved = true;
+    this.saving = false;
+    // update toolbar
+  };
+
+  zmEditor.prototype.keydownHandler = function (event) {
+    if (event.ctrlKey || event.metaKey) {
+      switch (String.fromCharCode(event.which).toLowerCase()) {
+        case 's':
+          event.preventDefault();
+
+          break;
+        case 'f':
+          event.preventDefault();
+          // @done
+          break;
+        case 'b':
+          event.preventDefault();
+          this.getContentDocument().execCommand('bold', false);
+          break;
+        case 'i':
+          event.preventDefault();
+          this.getContentDocument().execCommand('italic', false);
+          break;
+        case 'u':
+          event.preventDefault();
+          this.getContentDocument().execCommand('underline', false);
+          break;
+        case 'g':
+          event.preventDefault();
+          // @done
+          break;
+
+
+      }
+    }
+    if (! (event.ctrlKey || event.metaKey || event.altKey)) {
+      this.saved = false;
+    }
   };
 
   zmEditor.prototype.speechRecognitionErrorHandler = function (err) {
@@ -317,6 +374,7 @@
     this.getMicrophoneButton().classList.remove('recognizing');
     this.getPopupWindow().classList.remove('active');
     this.setPopupText('');
+
   };
 
   zmEditor.prototype.speechRecognitionResult = function (event) {
@@ -336,6 +394,7 @@
         this.setPopupText('');
         console.log(final_transcript);
         this.getContentDocument().execCommand('insertText', false, final_transcript + ' ');
+        this.saved = false;
       }
 
     }

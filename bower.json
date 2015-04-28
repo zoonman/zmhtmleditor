@@ -4,7 +4,7 @@
   "authors": [
     "Philipp Tkachev <zoonman@gmail.com>"
   ],
-  "description": "An simple, JavaScript WYSIWYG HTML Editor component",
+  "description": "A simple, JavaScript WYSIWYG HTML Editor component",
   "main": "editor.js",
   "dependencies": {
     "font-awesome": "~4.2.0"
@@ -17,7 +17,7 @@
     "Editor"
   ],
   "license": "MIT",
-  "homepage": "https://www.zoonman.com/projects/zmhtmleditor",
+  "homepage": "https://www.zoonman.com/projects/zmhtmleditor/",
   "ignore": [
     "**/.*",
     "node_modules",
