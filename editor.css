@@ -4,9 +4,7 @@
     border-bottom: solid 1px transparent;
     height: 27px;
     padding: 1px;
-    opacity: 0.22;
-    transition-duration: 500ms;
-    transition-timing-function: ease-out;
+    transition-duration: 100ms;
 }
 
 .ZmHtmlEditor .toolbar:hover  {
@@ -37,6 +35,39 @@
     margin-left: 3px;
     margin-right: 3px;
     width: 1px;
+}
+
+.ZmHtmlEditor .toolbar  div.combo {
+    display: inline-block;
+    width: 30px;
+    overflow: hidden;
+    height: 19px;
+    border: solid 1px #ddd;
+    margin: 0px 0px -3px 0px;
+    position: relative;
+}
+
+.ZmHtmlEditor .toolbar  div.combo:hover  {
+    overflow: visible;
+}
+.ZmHtmlEditor .toolbar  div.combo > div {
+    display: block;
+    clear: both;
+    height: auto;
+    width: 200px;
+    position: absolute;
+    top: 18px;
+    background: #fff;
+    border: solid 1px #777777;
+}
+.ZmHtmlEditor .toolbar  div.combo > div > * {
+    border: solid 1px transparent;
+    margin: 1px;
+    padding: 1px;
+}
+.ZmHtmlEditor .toolbar  div.combo > div > *:hover {
+    color: HighlightText;
+    background-color: Highlight;
 }
 
 .ZmHtmlEditor .toolbar  .fa {

@@ -18,6 +18,7 @@
 
     var defaultOptions = {
         lang: {
+          style: 'Style',
           bold: 'Bold',
           italic: 'Italic',
           underline: 'Underline',
@@ -46,6 +47,7 @@
           recognition: 'Voice Recognition (experimental)'
         },
         toolbarConfig: [
+          {class: 'combo', command: 'style'},
           {class: 'bold', command: 'bold'},
           {class: 'italic', command: 'italic'},
           {class: 'underline', command: 'underline'},
@@ -55,7 +57,7 @@
           {class: 'image', command: 'insertImage'},
           {class: 'table', command: 'table'},
           {class: 'spacer'},
-          {class: 'header', command: 'heading'},
+          //{class: 'header', command: 'heading'},
           {class: 'paragraph', command: 'insertParagraph'},
           {class: 'subscript', command: 'subscript'},
           {class: 'superscript', command: 'superscript'},
@@ -73,7 +75,8 @@
           {class: 'outdent', command: 'outdent'},
           {class: 'eraser', command: 'removeFormat'},
           {class: 'floppy-o', command: 'save'},
-          {class: 'paperclip', command: 'attach'}
+          {class: 'paperclip', command: 'attach'},
+          {class: 'thumb-tack pull-right', command: 'pinIt'},
         ],
       uploadUrl: window.location.protocol + '//' + window.location.host + '/server.php',
       customCssUrl: 'custom.css'
@@ -90,7 +93,7 @@
 
     var speechRecognitionEngine = null;
     if ('SpeechRecognition' in window) {
-      speechRecognitionEngine = window['SpeechRecognition'];
+      speechRecognitionEngine = window.SpeechRecognition;
     }
     if ('webkitSpeechRecognition' in window) {
       speechRecognitionEngine = window['webkitSpeechRecognition'];
@@ -101,8 +104,8 @@
 
     if (speechRecognitionEngine) {
       this.recognition = new speechRecognitionEngine();
-      this.recognition.continuous = true;
-      this.recognition.interimResults = true;
+      //this.recognition.continuous = true;
+      //this.recognition.interimResults = true;
       defaultOptions.toolbarConfig.push({class: 'microphone', command: 'recognition'});
     } else {
       this.recognition = null;
@@ -154,18 +157,54 @@
 
   zmEditor.prototype.setPopupText = function(text) {
     if (text) {
-      return document.getElementById('popupText' + this.iframeId).innerHTML = text;
+      document.getElementById('popupText' + this.iframeId).innerHTML = text;
     }
   };
+
+  function tag(tagName, content, classAttr) {
+    if (classAttr) {
+      classAttr = ' class="' + classAttr + '"';
+    }
+    return '<' + tagName + classAttr  + '>' + content + '</'+ tagName +'>';
+  }
+
+  function div(content, classAttr) {
+    if (classAttr) {
+     classAttr = ' class="' + classAttr + '"';
+    }
+    return '<div' + classAttr  + '>' + content + '</div>';
+  }
+
+
 
   zmEditor.prototype.generateToolbarHtml = function() {
     var html ='<div class="toolbar" id="toolbar' + this.iframeId + '"><div class="middle">';
     for (var i in this.options.toolbarConfig) {
       if (this.options.toolbarConfig.hasOwnProperty(i)) {
-        if (this.options.toolbarConfig[i].class === 'spacer') {
+        if (this.options.toolbarConfig[i].class === 'combo') {
+          html += div('<i class="fa fa-header"></i>' +
+              div(
+                  tag('h1', 'Header 1', 'h1') +
+                  tag('h2', 'Header 2', 'h2') +
+                  tag('h3', 'Header 3', 'h3') +
+                  tag('h4', 'Header 4', 'h4') +
+                  tag('h5', 'Header 5', 'h5') +
+                  tag('h6', 'Header 6', 'h6') +
+                  tag('pre', 'Preformatted', 'h1') +
+                  tag('blockquote', 'Blockquote', 'h1') +
+                  div('p','Paragraph', 'p'),
+                  'dd'
+              ),
+              'combo'
+          );
+        }
+        else if (this.options.toolbarConfig[i].class === 'spacer') {
           html += '<i class="spacer"></i>';
         } else {
-          html += '<i class="fa fa-' + this.options.toolbarConfig[i].class + '" data-command="' + this.options.toolbarConfig[i].command + '" title="' + this.options.lang[this.options.toolbarConfig[i].command] + '"></i>';
+          html += '<i class="fa fa-' + this.options.toolbarConfig[i].class + '"';
+          html += ' data-command="' + this.options.toolbarConfig[i].command + '"';
+          html += ' id="cmd' + this.iframeId + this.options.toolbarConfig[i].command + '"';
+          html += 'title="' + this.options.lang[this.options.toolbarConfig[i].command] + '"></i>';
         }
       }
     }
@@ -295,10 +334,12 @@
   zmEditor.prototype.saveDocument = function() {
     if (this.saved || this.saving) {
       // gray out save icon on toolbar
+      document.getElementById('cmd' + this.iframeId + 'save').style.color = 'gray';
     } else {
       this.saving = true;
       this.save('', this.documentSaved.bind(this));
       // update toolbar
+      document.getElementById('cmd' + this.iframeId + 'save').style.color = 'blue';
     }
   };
 
@@ -306,6 +347,8 @@
     this.saved = true;
     this.saving = false;
     // update toolbar
+    document.getElementById('cmd' + this.iframeId + 'save').style.color = 'gray';
+
   };
 
   zmEditor.prototype.keydownHandler = function (event) {
@@ -341,20 +384,12 @@
     }
     if (! (event.ctrlKey || event.metaKey || event.altKey)) {
       this.saved = false;
+      document.getElementById('cmd' + this.iframeId + 'save').style.color = '';
     }
   };
 
   zmEditor.prototype.speechRecognitionErrorHandler = function (err) {
     console.log(event.error);
-    if (event.error == 'no-speech') {
-      // @todo
-    }
-    if (event.error == 'audio-capture') {
-      // @todo
-    }
-    if (event.error == 'not-allowed') {
-      // @todo
-    }
     if (event.error) {
       this.setPopupText(event.error).bind(this);
     }
@@ -409,11 +444,9 @@
 
   zmEditor.prototype.switchSpeechRecognition = function(el) {
     if (this.recognizing) {
-      //this.recognizing = false;
       this.recognition.stop();
     } else {
-      // this.recognizing = true;
-      this.recognition.lang = 'ru-RU';
+      this.recognition.lang = 'en-US';// ffx
       this.recognition.start();
     }
   };
