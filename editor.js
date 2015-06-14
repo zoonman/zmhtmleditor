@@ -4,19 +4,20 @@
 (function () {
   'use strict';
 
-  var zmEditor = function(setupOptions) {
+  var zmEditorProto = function(setupOptions) {
     this.init(setupOptions);
   };
 
-  zmEditor.prototype.randomId = function(prefix) {
+  zmEditorProto.prototype.randomId = function(prefix) {
     prefix = prefix || '';
     return prefix + Math.random().toString().replace('0.', '');
   };
 
-  zmEditor.prototype.init = function(setupOptions) {
+  zmEditorProto.prototype.init = function(setupOptions) {
     var options = setupOptions || {};
 
     var defaultOptions = {
+        locale: 'en-US',
         lang: {
           style: 'Style',
           bold: 'Bold',
@@ -27,7 +28,13 @@
           insertImage: 'Image',
           heading: 'Insert Header',
           insertParagraph: 'Paragraph',
-          table: 'Insert Table',
+          table: 'Insert 2x2 Table',
+          addRowBelow: 'Add Row Below',
+          addRowAbove: 'Add Row Above',
+          addColumnBefore: 'Add Column Before',
+          addColumnAfter: 'add Column After',
+          dropCurrentRow: 'dropCurrentRow',
+          dropCurrentColumn: 'dropCurrentColumn',
           subscript: 'Subscript',
           superscript: 'Superscript',
           insertOrderedList: 'Insert Ordered List',
@@ -44,18 +51,51 @@
           save: 'Save',
           attach: 'Attach',
           uploading: '',
-          recognition: 'Voice Recognition (experimental)'
+          recognition: 'Voice Recognition (experimental)',
+          h1:'Header 1',
+          h2:'Header 2',
+          h3:'Header 3',
+          h4:'Header 4',
+          h5:'Header 5',
+          h6:'Header 6',
+          pre:'Preformatted',
+          blockquote:'Blockquote',
+          paragraph:'Normal'
         },
         toolbarConfig: [
-          {class: 'combo', command: 'style'},
+          {
+            class: 'fa fa-header combo', command: 'style',
+            menu: [
+              {class: 'h1', command: 'h1', tag: 'h1'},
+              {class: 'h2', command: 'h2', tag: 'h2'},
+              {class: 'h3', command: 'h3', tag: 'h3'},
+              {class: 'h4', command: 'h4', tag: 'h4'},
+              {class: 'h5', command: 'h5', tag: 'h5'},
+              {class: 'h6', command: 'h6', tag: 'h6'},
+              {class: 'pre', command: 'pre', tag: 'pre'},
+              {class: 'blockquote', command: 'blockquote', tag: 'blockquote'},
+              {class: 'p', command: 'insertParagraph', tag: 'p'}
+            ]
+
+          },
           {class: 'bold', command: 'bold'},
           {class: 'italic', command: 'italic'},
           {class: 'underline', command: 'underline'},
           {class: 'strikethrough', command: 'strikeThrough'},
           {class: 'spacer'},
           {class: 'link', command: 'createLink'},
-          {class: 'image', command: 'insertImage'},
-          {class: 'table', command: 'table'},
+          {class: 'image', command: 'insertImage'
+          },
+          {class: 'fa fa-table', command: 'table',
+            menu: [
+              {class: 'table', command: 'table', tag: 'p'},
+              {class: 'table', command: 'addRowBelow', tag: 'p'},
+              {class: 'table', command: 'addRowAbove', tag: 'p'},
+              {class: 'table', command: 'addColumnBefore', tag: 'p'},
+              {class: 'table', command: 'addColumnAfter', tag: 'p'},
+              {class: 'table', command: 'dropCurrentRow', tag: 'p'},
+              {class: 'table', command: 'dropCurrentColumn', tag: 'p'},
+            ]},
           {class: 'spacer'},
           //{class: 'header', command: 'heading'},
           {class: 'paragraph', command: 'insertParagraph'},
@@ -104,8 +144,8 @@
 
     if (speechRecognitionEngine) {
       this.recognition = new speechRecognitionEngine();
-      //this.recognition.continuous = true;
-      //this.recognition.interimResults = true;
+      this.recognition.continuous = true;
+      this.recognition.interimResults = true;
       defaultOptions.toolbarConfig.push({class: 'microphone', command: 'recognition'});
     } else {
       this.recognition = null;
@@ -131,31 +171,44 @@
     
   };
 
-  zmEditor.prototype.getIframe = function() {
+  zmEditorProto.prototype.getIframe = function() {
     return document.getElementById(this.iframeId);
   };
 
-  zmEditor.prototype.getContentDocument = function() {
+  zmEditorProto.prototype.getContentDocument = function() {
     return this.getIframe().contentDocument;
   };
 
-  zmEditor.prototype.setFocus = function() {
-    return this.getIframe().focus();
+  zmEditorProto.prototype.setFocus = function() {
+    var win = this.getIframe().contentWindow || this.getIframe().contentDocument.defaultView;
+    var doc = win.document;
+    if (win.getSelection && doc.createRange) {
+      var sel = win.getSelection();
+      var range = doc.createRange();
+      range.selectNodeContents(doc.body);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    } else if (doc.selection && doc.body.createTextRange) {
+      var textRange = doc.body.createTextRange();
+      textRange.collapse(true);
+      textRange.select();
+    }
   };
 
-  zmEditor.prototype.showDropTarget = function() {
+  zmEditorProto.prototype.showDropTarget = function() {
     document.getElementById('toolbar' + this.iframeId).style.opacity = 0.5;
   };
 
-  zmEditor.prototype.hideDropTarget = function() {
+  zmEditorProto.prototype.hideDropTarget = function() {
     document.getElementById('toolbar' + this.iframeId).style.opacity = 1;
   };
 
-  zmEditor.prototype.getPopupWindow = function() {
+  zmEditorProto.prototype.getPopupWindow = function() {
     return document.getElementById('popup' + this.iframeId);
   };
 
-  zmEditor.prototype.setPopupText = function(text) {
+  zmEditorProto.prototype.setPopupText = function(text) {
     if (text) {
       document.getElementById('popupText' + this.iframeId).innerHTML = text;
     }
@@ -176,52 +229,105 @@
   }
 
 
+  zmEditorProto.prototype.getCaretPosition = function () {
+    var caretOffset = 0;
+    var doc = this.getContentDocument();
+    var element = doc;
+    var win = doc.defaultView || doc.parentWindow;
+    var sel;
+    if (typeof win.getSelection != "undefined") {
+      sel = win.getSelection();
+      if (sel.rangeCount > 0) {
+        var range = win.getSelection().getRangeAt(0);
+        var preCaretRange = range.cloneRange();
+        preCaretRange.selectNodeContents(element);
+        preCaretRange.setEnd(range.endContainer, range.endOffset);
+        caretOffset = preCaretRange.toString().length;
+      }
+    } else if ( (sel = doc.selection) && sel.type != "Control") {
+      var textRange = sel.createRange();
+      var preCaretTextRange = doc.body.createTextRange();
+      preCaretTextRange.moveToElementText(element);
+      preCaretTextRange.setEndPoint("EndToEnd", textRange);
+      caretOffset = preCaretTextRange.text.length;
+    }
+    return caretOffset;
+  };
 
-  zmEditor.prototype.generateToolbarHtml = function() {
-    var html ='<div class="toolbar" id="toolbar' + this.iframeId + '"><div class="middle">';
-    for (var i in this.options.toolbarConfig) {
-      if (this.options.toolbarConfig.hasOwnProperty(i)) {
-        if (this.options.toolbarConfig[i].class === 'combo') {
-          html += div('<i class="fa fa-header"></i>' +
-              div(
-                  tag('h1', 'Header 1', 'h1') +
-                  tag('h2', 'Header 2', 'h2') +
-                  tag('h3', 'Header 3', 'h3') +
-                  tag('h4', 'Header 4', 'h4') +
-                  tag('h5', 'Header 5', 'h5') +
-                  tag('h6', 'Header 6', 'h6') +
-                  tag('pre', 'Preformatted', 'h1') +
-                  tag('blockquote', 'Blockquote', 'h1') +
-                  div('p','Paragraph', 'p'),
-                  'dd'
-              ),
-              'combo'
-          );
-        }
-        else if (this.options.toolbarConfig[i].class === 'spacer') {
-          html += '<i class="spacer"></i>';
+  zmEditorProto.prototype.setCaretPosition = function(position) {
+    this.setFocus();
+    var internalDocument = this.getContentDocument();
+    var el = internalDocument.getElementsByTagName('body')[0];
+    if (typeof window.getSelection != "undefined"
+      && typeof document.createRange != "undefined") {
+      var range = document.createRange();
+      range.selectNodeContents(el);
+      range.collapse(false);
+      range.setStart(internalDocument, position);
+      range.setEnd(internalDocument, position);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    } else if (typeof document.body.createTextRange != "undefined") {
+      var textRange = document.body.createTextRange();
+      textRange.moveToElementText(el);
+      textRange.collapse(false);
+      textRange.select();
+    }
+  };
+
+  zmEditorProto.prototype.buildCommandTag = function(command, classAttr, tag) {
+    var ctag = tag || 'i';
+    var html = '';
+    html += '<' + ctag + ' class="' + classAttr + ' command"';
+    html += ' data-command="' + command + '"';
+    html += ' id="cmd' + this.iframeId + command + '"';
+    html += 'title="' + this.options.lang[command] + '">';
+    if (tag) {
+      html += this.options.lang[command];
+    }
+    html += '</' + ctag + '>';
+    return html;
+  };
+
+  zmEditorProto.prototype.buildCommandList = function(commandList) {
+    var html = '';
+    for (var i in commandList) {
+      if (commandList.hasOwnProperty(i)) {
+        if (commandList[i].hasOwnProperty('menu')) {
+          html += tag('i', div(this.buildCommandList(commandList[i].menu), 'dd'), commandList[i].class + ' combo');
         } else {
-          html += '<i class="fa fa-' + this.options.toolbarConfig[i].class + '"';
-          html += ' data-command="' + this.options.toolbarConfig[i].command + '"';
-          html += ' id="cmd' + this.iframeId + this.options.toolbarConfig[i].command + '"';
-          html += 'title="' + this.options.lang[this.options.toolbarConfig[i].command] + '"></i>';
+          if (commandList[i].class === 'spacer') {
+            html += tag('i', '', 'spacer');
+          } else {
+              if (commandList[i].tag) {
+                html += this.buildCommandTag(commandList[i].command, ' ' + commandList[i].class, commandList[i].tag);
+              } else {
+                html += this.buildCommandTag(commandList[i].command, 'fa fa-' + commandList[i].class);
+              }
+          }
         }
       }
     }
+    return html;
+  };
 
+  zmEditorProto.prototype.generateToolbarHtml = function() {
+    var html ='<div class="toolbar" id="toolbar' + this.iframeId + '"><div class="middle">';
+    html += this.buildCommandList(this.options.toolbarConfig);
     html += '</div></div><div class="dropdown"><div class="arrow"></div><div class="inner"></div></div>';
     html += '<input type="file" id="file' + this.iframeId + '" multiple style="display:none">';
     html += '<div id="popup' + this.iframeId + '" class="popup"><i class="fa fa-2x fa-microphone"></i><span id="popupText' + this.iframeId + '"></span></div>';
     return html;
   };
 
-  zmEditor.prototype.adaptSize = function() {
+  zmEditorProto.prototype.adaptSize = function() {
     var height = document.getElementById(this.options.id).clientHeight;
     var iframeHeight = height - 28;
     return this.getIframe().setAttribute('height', iframeHeight);
   };
 
-  zmEditor.prototype.dropHandler = function(e) {
+  zmEditorProto.prototype.dropHandler = function(e) {
     var dt = e.dataTransfer;
     var files = dt.files;
     if (files && files.length > 0) {
@@ -232,7 +338,7 @@
     this.hideDropTarget();
   };
 
-  zmEditor.prototype.buttonClickHandler = function(element) {
+  zmEditorProto.prototype.buttonClickHandler = function(element) {
     if (element) {
       var command = element.target.dataset.command;
       switch (command) {
@@ -240,8 +346,17 @@
           var tableHtml = '<table style="border-collapse: collapse;" border="1" width="100%"><thead><tr><th>1</th><th>2</th></tr></thead><tbody><tr><td>3</td><td>4</td></tr></tbody></table><p>&nbsp;</p>';
           this.getContentDocument().execCommand('insertHTML', false, tableHtml);
           break;
-        case 'heading':
-          this.getContentDocument().execCommand(command, false, 'h1');
+        case 'h1':
+        case 'h2':
+        case 'h3':
+        case 'h4':
+        case 'h5':
+        case 'h6':
+          this.getContentDocument().execCommand('heading', false, command);
+          break;
+        case 'pre':
+        case 'blockquote':
+          this.getContentDocument().execCommand('formatBlock', false, command);
           break;
         case 'save':
           this.save(element.target);
@@ -265,19 +380,21 @@
     }
   };
 
-  zmEditor.prototype.enableEditing = function() {
+  zmEditorProto.prototype.enableEditing = function() {
     this.adaptSize();
+
+    this.getIframe().focus();
 
     this.getContentDocument().designMode = "on";
 
 
-    this.getIframe().contentWindow.focus();
+    //this.getIframe().contentWindow.focus();
 
     var contentDocument = this.getContentDocument();
         contentDocument.execCommand('insertHTML', false, this.initHtml);
 
 
-    var buttons = document.getElementsByClassName('fa');
+    var buttons = document.getElementsByClassName('command');
     for (var i= 0, l = buttons.length; i < l; i++) {
       if (buttons.hasOwnProperty(i)) {
         var button = buttons[i];
@@ -329,9 +446,13 @@
 
     contentDocument.addEventListener('keydown', this.keydownHandler.bind(this), false);
     window.setInterval(this.saveDocument.bind(this), 2718); // let's make check interval close to e
+
+    window.setTimeout(function() {
+      this.setFocus();
+    }.bind(this), 100);
   };
 
-  zmEditor.prototype.saveDocument = function() {
+  zmEditorProto.prototype.saveDocument = function() {
     if (this.saved || this.saving) {
       // gray out save icon on toolbar
       document.getElementById('cmd' + this.iframeId + 'save').style.color = 'gray';
@@ -343,7 +464,7 @@
     }
   };
 
-  zmEditor.prototype.documentSaved = function() {
+  zmEditorProto.prototype.documentSaved = function() {
     this.saved = true;
     this.saving = false;
     // update toolbar
@@ -351,7 +472,7 @@
 
   };
 
-  zmEditor.prototype.keydownHandler = function (event) {
+  zmEditorProto.prototype.keydownHandler = function (event) {
     if (event.ctrlKey || event.metaKey) {
       switch (String.fromCharCode(event.which).toLowerCase()) {
         case 's':
@@ -378,9 +499,10 @@
           event.preventDefault();
           // @done
           break;
-
-
       }
+    } else {
+      var p = this.getCaretPosition();
+      console.log(p);
     }
     if (! (event.ctrlKey || event.metaKey || event.altKey)) {
       this.saved = false;
@@ -388,22 +510,22 @@
     }
   };
 
-  zmEditor.prototype.speechRecognitionErrorHandler = function (err) {
+  zmEditorProto.prototype.speechRecognitionErrorHandler = function (err) {
     console.log(event.error);
     if (event.error) {
       this.setPopupText(event.error).bind(this);
     }
   };
 
-  zmEditor.prototype.speechRecognitionSoundStart = function (data) {    console.log(data);  };
-  zmEditor.prototype.speechRecognitionSoundEnd = function (data) {    console.log(data);  };
-  zmEditor.prototype.speechRecognitionSpeechStart = function (data) {    console.log(data);  };
-  zmEditor.prototype.speechRecognitionSpeechEnd = function (data) {    console.log(data);  };
-  zmEditor.prototype.speechRecognitionAudioStart = function (data) {    console.log(data);  };
-  zmEditor.prototype.speechRecognitionAudioEnd = function (data) {    console.log(data);  };
-  zmEditor.prototype.speechRecognitionNoMatch = function (data) {    console.log(data);  };
+  zmEditorProto.prototype.speechRecognitionSoundStart = function (data) {    console.log(data);  };
+  zmEditorProto.prototype.speechRecognitionSoundEnd = function (data) {    console.log(data);  };
+  zmEditorProto.prototype.speechRecognitionSpeechStart = function (data) {    console.log(data);  };
+  zmEditorProto.prototype.speechRecognitionSpeechEnd = function (data) {    console.log(data);  };
+  zmEditorProto.prototype.speechRecognitionAudioStart = function (data) {    console.log(data);  };
+  zmEditorProto.prototype.speechRecognitionAudioEnd = function (data) {    console.log(data);  };
+  zmEditorProto.prototype.speechRecognitionNoMatch = function (data) {    console.log(data);  };
 
-  zmEditor.prototype.speechRecognitionEnd = function (data) {
+  zmEditorProto.prototype.speechRecognitionEnd = function (data) {
     console.log(data);
     this.recognizing = false;
     this.getMicrophoneButton().classList.remove('recognizing');
@@ -412,7 +534,7 @@
 
   };
 
-  zmEditor.prototype.speechRecognitionResult = function (event) {
+  zmEditorProto.prototype.speechRecognitionResult = function (event) {
     console.log(event);
     var final_transcript = '', interim_transcript = '';
     if (event.results) {
@@ -435,23 +557,25 @@
     }
   };
 
-  zmEditor.prototype.speechRecognitionStart = function (data) {
+  zmEditorProto.prototype.speechRecognitionStart = function (data) {
     this.recognizing = true;
     this.getMicrophoneButton().classList.add('recognizing');
     this.setPopupText('');
     this.getPopupWindow().classList.add('active');
   };
 
-  zmEditor.prototype.switchSpeechRecognition = function(el) {
+  zmEditorProto.prototype.switchSpeechRecognition = function(el) {
     if (this.recognizing) {
+      //this.recognizing = false;
       this.recognition.stop();
     } else {
-      this.recognition.lang = 'en-US';// ffx
+      // this.recognizing = true;
+      this.recognition.lang = this.options.locale;
       this.recognition.start();
     }
   };
 
-  zmEditor.prototype.getMicrophoneButton = function() {
+  zmEditorProto.prototype.getMicrophoneButton = function() {
     var mic = document.getElementsByClassName('fa-microphone');
     if (mic.length > 0) {
       return mic[0];
@@ -459,11 +583,11 @@
     return null;
   };
 
-  zmEditor.prototype.attach = function() {
+  zmEditorProto.prototype.attach = function() {
     document.getElementById('file' + this.iframeId).click();
   };
 
-  zmEditor.prototype.uploadFiles = function(files) {
+  zmEditorProto.prototype.uploadFiles = function(files) {
     if (files && files.length > 0) {
       for (var i = 0, l = files.length; i < l; i++) {
         this.uploadFile(files[i]);
@@ -557,7 +681,7 @@
     fu.xhr = fu.uploadFile(file);
   }
 
-  zmEditor.prototype.uploadFileDone = function(results) {
+  zmEditorProto.prototype.uploadFileDone = function(results) {
     for (var i in results) {
       if (results.hasOwnProperty(i)) {
         var result = results[i];
@@ -579,20 +703,30 @@
     }
   };
 
-  zmEditor.prototype.uploadFile = function(file, done) {
+  zmEditorProto.prototype.uploadFile = function(file, done) {
     var uploader = new ZmFileUploader(this.options.uploadUrl, file, done || this.uploadFileDone.bind(this));
   };
 
 
-  zmEditor.prototype.save = function(html, done) {
-    var uploader = new ZmFileUploader(this.options.uploadUrl, new File(
-        [this.getContentDocument().documentElement.outerHTML],
-        'document.html',
-        {type: 'text/html'}
-    ), done || this.uploadFileDone.bind(this));
+  zmEditorProto.prototype.save = function(html, done) {
+    var xhr = new XMLHttpRequest();
+    var formData = new FormData();
+    formData.append('file', this.getContentDocument().documentElement.outerHTML );
+    formData.append('caretPosition', this.getCaretPosition() );
+    xhr.addEventListener('load', function() {
+      if (xhr.status === 200) {
+        done();
+      } else {
+        done();
+      }
+    }, false);
+    xhr.open('POST', this.options.uploadUrl);
+    xhr.responseType= 'json';
+    xhr.send(formData);
+    return xhr;
   };
 
-// extending global window namespace
-  window.ZmHtmlEditor = zmEditor;
+  // extending global window namespace
+  window.ZmHtmlEditor = zmEditorProto;
 
 }());

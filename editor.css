@@ -37,35 +37,37 @@
     width: 1px;
 }
 
-.ZmHtmlEditor .toolbar  div.combo {
-    display: inline-block;
-    width: 30px;
-    overflow: hidden;
-    height: 19px;
-    border: solid 1px #ddd;
-    margin: 0px 0px -3px 0px;
+.ZmHtmlEditor .toolbar  .combo {
+
     position: relative;
 }
 
-.ZmHtmlEditor .toolbar  div.combo:hover  {
+.ZmHtmlEditor .toolbar  .combo:hover  {
     overflow: visible;
 }
-.ZmHtmlEditor .toolbar  div.combo > div {
-    display: block;
+.ZmHtmlEditor .toolbar  .combo > div {
+    display: none;
     clear: both;
     height: auto;
     width: 200px;
     position: absolute;
-    top: 18px;
+    top: 23px;
+    left: 0px;
     background: #fff;
     border: solid 1px #777777;
 }
-.ZmHtmlEditor .toolbar  div.combo > div > * {
+
+.ZmHtmlEditor .toolbar  .combo:hover > div  {
+    display: block;
+}
+
+.ZmHtmlEditor .toolbar  .combo > div > * {
     border: solid 1px transparent;
     margin: 1px;
     padding: 1px;
+    color: #333;
 }
-.ZmHtmlEditor .toolbar  div.combo > div > *:hover {
+.ZmHtmlEditor .toolbar  .combo > div > *:hover {
     color: HighlightText;
     background-color: Highlight;
 }

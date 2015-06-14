@@ -45,4 +45,8 @@ if (!empty($_FILES)) {
     }
 }
 
+if (!empty($_POST)) {
+    $results[] = $_POST;
+}
+
 echo json_encode($results, JSON_FORCE_OBJECT);
