@@ -89,8 +89,8 @@
           {class: 'fa fa-table', command: 'table',
             menu: [
               {class: 'table', command: 'table', tag: 'p'},
-              {class: 'table', command: 'addRowBelow', tag: 'p'},
               {class: 'table', command: 'addRowAbove', tag: 'p'},
+              {class: 'table', command: 'addRowBelow', tag: 'p'},
               {class: 'table', command: 'addColumnBefore', tag: 'p'},
               {class: 'table', command: 'addColumnAfter', tag: 'p'},
               {class: 'table', command: 'dropCurrentRow', tag: 'p'},
@@ -235,7 +235,7 @@
     var element = doc;
     var win = doc.defaultView || doc.parentWindow;
     var sel;
-    if (typeof win.getSelection != "undefined") {
+    if (typeof win.getSelection !== "undefined") {
       sel = win.getSelection();
       if (sel.rangeCount > 0) {
         var range = win.getSelection().getRangeAt(0);
@@ -244,7 +244,7 @@
         preCaretRange.setEnd(range.endContainer, range.endOffset);
         caretOffset = preCaretRange.toString().length;
       }
-    } else if ( (sel = doc.selection) && sel.type != "Control") {
+    } else if ( (sel = doc.selection) && sel.type !== "Control") {
       var textRange = sel.createRange();
       var preCaretTextRange = doc.body.createTextRange();
       preCaretTextRange.moveToElementText(element);
@@ -258,8 +258,8 @@
     this.setFocus();
     var internalDocument = this.getContentDocument();
     var el = internalDocument.getElementsByTagName('body')[0];
-    if (typeof window.getSelection != "undefined"
-      && typeof document.createRange != "undefined") {
+    if (typeof window.getSelection !== "undefined" &&
+        typeof document.createRange !== "undefined") {
       var range = document.createRange();
       range.selectNodeContents(el);
       range.collapse(false);
@@ -268,7 +268,7 @@
       var sel = window.getSelection();
       sel.removeAllRanges();
       sel.addRange(range);
-    } else if (typeof document.body.createTextRange != "undefined") {
+    } else if (typeof document.body.createTextRange !== "undefined") {
       var textRange = document.body.createTextRange();
       textRange.moveToElementText(el);
       textRange.collapse(false);
@@ -374,10 +374,31 @@
             this.getContentDocument().execCommand(command, false, src);
           }
           break;
+        case  'addRowAbove':
+            //
+          break;
+        case 'addRowBelow':
+              //
+          break;
+        case 'addColumnBefore':
+            //
+          break;
+        case 'addColumnAfter':
+            //
+          break;
+        case 'dropCurrentRow':
+          //
+          break;
+
+        case 'dropCurrentColumn':
+
+          break;
         default:
           this.getContentDocument().execCommand(command, false);
       }
     }
+    element.preventDefault();
+    element.stopPropagation();
   };
 
   zmEditorProto.prototype.enableEditing = function() {

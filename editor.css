@@ -66,6 +66,10 @@
     margin: 1px;
     padding: 1px;
     color: #333;
+    text-align: left;
+    line-height: 1em;
+    cursor: default;
+    font-family: "Ubuntu", Tahoma, "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 .ZmHtmlEditor .toolbar  .combo > div > *:hover {
     color: HighlightText;
