@@ -31,10 +31,11 @@
           table: 'Insert 2x2 Table',
           addRowBelow: 'Add Row Below',
           addRowAbove: 'Add Row Above',
-          addColumnBefore: 'Add Column Before',
-          addColumnAfter: 'add Column After',
-          dropCurrentRow: 'dropCurrentRow',
-          dropCurrentColumn: 'dropCurrentColumn',
+          addColumnBefore: 'Insert Column Left',
+          addColumnAfter: 'Insert Column Right',
+          deleteCurrentRow: 'Delete Row',
+          deleteCurrentColumn: 'Delete Column',
+          deleteTable: 'Delete Table',
           subscript: 'Subscript',
           superscript: 'Superscript',
           insertOrderedList: 'Insert Ordered List',
@@ -93,8 +94,9 @@
               {class: 'table', command: 'addRowBelow', tag: 'p'},
               {class: 'table', command: 'addColumnBefore', tag: 'p'},
               {class: 'table', command: 'addColumnAfter', tag: 'p'},
-              {class: 'table', command: 'dropCurrentRow', tag: 'p'},
-              {class: 'table', command: 'dropCurrentColumn', tag: 'p'},
+              {class: 'table', command: 'deleteCurrentRow', tag: 'p'},
+              {class: 'table', command: 'deleteCurrentColumn', tag: 'p'},
+              {class: 'table', command: 'deleteTable', tag: 'p'}
             ]},
           {class: 'spacer'},
           //{class: 'header', command: 'heading'},
@@ -290,6 +292,91 @@
     return html;
   };
 
+  zmEditorProto.prototype.getSelectionStart = function() {
+    var node = this.getContentDocument().getSelection().anchorNode;
+    return (node.nodeType == 3 ? node.parentNode : node);
+  };
+
+  function getSpecifiedElement(node, tagName) {
+    if (tagName) {
+      if (node) {
+        if (node.nodeName === tagName) {
+          return node;
+        } else {
+          return getSpecifiedElement(node.parentNode, tagName);
+        }
+      }
+    }
+    return null;
+  }
+
+  zmEditorProto.prototype.getElementUnderCaret = function(tagName) {
+    var node = this.getSelectionStart();
+    //console.log(node);
+    if (node) {
+      if (tagName) {
+        return getSpecifiedElement(node, tagName);
+      } else {
+        return node;
+      }
+    } else {
+      return null;
+    }
+  };
+
+  zmEditorProto.prototype.insertColumn = function(position) {
+    var table = this.getElementUnderCaret('TABLE');
+    if (table) {
+      var tHead = table.tHead;
+      for (var h = 0; h < tHead.rows.length; h++) {
+        var newTh = document.createElement('th');
+        tHead.rows[h].appendChild(newTh);
+      }
+      var tBody = table.tBodies[0];
+      for (var i = 0; i < tBody.rows.length; i++) {
+        var newCell = tBody.rows[i].insertCell(-1);
+      }
+    }
+  };
+
+  zmEditorProto.prototype.insertRow = function(position) {
+    var table = this.getElementUnderCaret('TABLE');
+    if (table) {
+      // table
+    }
+  };
+
+  zmEditorProto.prototype.dropColumn = function() {
+    var node = this.getElementUnderCaret('TD');
+    if (!node) {
+      node = this.getElementUnderCaret('TH');
+    }
+    if (node) {
+      var currentColumn = node.cellIndex;
+      var table = this.getElementUnderCaret('TABLE');
+      var allRows = table.rows;
+      for (var i=0; i<allRows.length; i++) {
+        if (allRows[i].cells.length > 1) {
+          allRows[i].deleteCell(currentColumn);
+        }
+      }
+    }
+  };
+
+  zmEditorProto.prototype.dropRow = function() {
+    var node = this.getElementUnderCaret('TR');
+    if (node) {
+      node.parentNode.removeChild(node);
+    }
+  };
+
+  zmEditorProto.prototype.dropTable = function() {
+    var node = this.getElementUnderCaret('TABLE');
+    if (node) {
+      node.parentNode.removeChild(node);
+    }
+  };
+
   zmEditorProto.prototype.buildCommandList = function(commandList) {
     var html = '';
     for (var i in commandList) {
@@ -338,9 +425,12 @@
     this.hideDropTarget();
   };
 
-  zmEditorProto.prototype.buttonClickHandler = function(element) {
-    if (element) {
-      var command = element.target.dataset.command;
+  zmEditorProto.prototype.buttonClickHandler = function(clickEvent) {
+    if (clickEvent) {
+      clickEvent.preventDefault();
+      clickEvent.stopPropagation();
+
+      var command = clickEvent.target.dataset.command;
       switch (command) {
         case 'table':
           var tableHtml = '<table style="border-collapse: collapse;" border="1" width="100%"><thead><tr><th>1</th><th>2</th></tr></thead><tbody><tr><td>3</td><td>4</td></tr></tbody></table><p>&nbsp;</p>';
@@ -354,19 +444,29 @@
         case 'h6':
           this.getContentDocument().execCommand('heading', false, command);
           break;
+
+        case 'deleteCurrentColumn':
+          this.dropColumn();
+          break;
+        case 'deleteCurrentRow':
+          this.dropRow();
+          break;
+        case 'deleteTable':
+          this.dropTable();
+          break;
         case 'pre':
         case 'blockquote':
           this.getContentDocument().execCommand('formatBlock', false, command);
           break;
         case 'save':
-          this.save(element.target);
+          this.save(clickEvent.target);
           break;
         case 'attach':
         case 'insertImage':
-          this.attach(element.target);
+          this.attach(clickEvent.target);
           break;
         case 'recognition':
-          this.switchSpeechRecognition(element.target);
+          this.switchSpeechRecognition(clickEvent.target);
           break;
         case 'createLink':
           var src = window.prompt('Type Image Url here:');
@@ -397,8 +497,7 @@
           this.getContentDocument().execCommand(command, false);
       }
     }
-    element.preventDefault();
-    element.stopPropagation();
+
   };
 
   zmEditorProto.prototype.enableEditing = function() {

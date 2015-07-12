@@ -17,3 +17,5 @@ h5              { font-size: .83em; margin: 1.5em 0 }
 h6              { font-size: .75em; margin: 1.67em 0 }
 blockquote      {border-left: solid thick rgba(0,0,0,0.1); padding-left: 1em }
 img {max-width: 100%}
+
+h1:before    {content: 'h1';color: #eeeeee;font-size: 0.3em}
