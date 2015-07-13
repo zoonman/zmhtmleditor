@@ -118,9 +118,11 @@
           {class: 'eraser', command: 'removeFormat'},
           {class: 'floppy-o', command: 'save'},
           {class: 'paperclip', command: 'attach'},
-          {class: 'thumb-tack pull-right', command: 'pinIt'},
+          {class: 'sign-out pull-right', command: 'goToUrl'},
+          //{class: 'thumb-tack pull-right', command: 'pinIt'},
         ],
       uploadUrl: window.location.protocol + '//' + window.location.host + '/server.php',
+      goToUrl: window.location.protocol + '//' + window.location.host + '/',
       customCssUrl: 'custom.css'
     };
 
@@ -492,6 +494,9 @@
 
         case 'dropCurrentColumn':
 
+          break;
+        case 'goToUrl':
+          window.location = this.options.goToUrl;
           break;
         default:
           this.getContentDocument().execCommand(command, false);
