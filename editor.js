@@ -296,7 +296,7 @@
 
   zmEditorProto.prototype.getSelectionStart = function() {
     var node = this.getContentDocument().getSelection().anchorNode;
-    return (node.nodeType == 3 ? node.parentNode : node);
+    return (node.nodeType === 3 ? node.parentNode : node);
   };
 
   function getSpecifiedElement(node, tagName) {
@@ -330,13 +330,43 @@
     var table = this.getElementUnderCaret('TABLE');
     if (table) {
       var tHead = table.tHead;
-      for (var h = 0; h < tHead.rows.length; h++) {
-        var newTh = document.createElement('th');
-        tHead.rows[h].appendChild(newTh);
+      if (tHead) {
+        for (var h = 0; h < tHead.rows.length; h++) {
+          var newTh = document.createElement('th');
+          tHead.rows[h].appendChild(newTh);
+        }
       }
-      var tBody = table.tBodies[0];
-      for (var i = 0; i < tBody.rows.length; i++) {
-        var newCell = tBody.rows[i].insertCell(-1);
+
+      var node = this.getElementUnderCaret('TD');
+      if (!node) {
+        node = this.getElementUnderCaret('TH');
+      }
+      var currentColumn = node.cellIndex;
+      console.log(currentColumn);
+
+      for (var b = 0, bl = table.tBodies.length; b < bl; b++) {
+        var tBody = table.tBodies[b], fakeCells = 0;
+        for (var i = 0; i < tBody.rows.length; i++) {
+          console.log('tBody.rows[i].cells.length',b,'it',i,  tBody.rows[i].cells.length);
+
+          var cellsToInsert = Math.min(currentColumn, tBody.rows[i].cells.length);
+          for (var c = 0; c < cellsToInsert ; c++) {
+            if (tBody.rows[i].cells[i].hasOwnProperty('rowsSpan')) {
+              fakeCells += tBody.rows[i].cells[i].hasOwnProperty('rowsSpan');
+            }
+          }
+
+          if (currentColumn < tBody.rows[i].cells.length) {
+            var newCell = tBody.rows[i].insertCell(currentColumn);
+            newCell.innerHTML = '&nbsp;';
+          } else {
+            var newCell = tBody.rows[i].insertCell(tBody.rows[i].cells.length);
+            newCell.innerHTML = '&nbsp;';
+
+          }
+
+
+        }
       }
     }
   };
@@ -345,6 +375,7 @@
     var table = this.getElementUnderCaret('TABLE');
     if (table) {
       // table
+      console.log(table);
     }
   };
 
@@ -478,22 +509,19 @@
           break;
         case  'addRowAbove':
             //
+          this.insertRow(1);
           break;
         case 'addRowBelow':
+          this.insertRow(-1);
               //
           break;
         case 'addColumnBefore':
             //
+            this.insertColumn(-1);
           break;
         case 'addColumnAfter':
             //
-          break;
-        case 'dropCurrentRow':
-          //
-          break;
-
-        case 'dropCurrentColumn':
-
+          this.insertColumn(1);
           break;
         case 'goToUrl':
           window.location = this.options.goToUrl;
@@ -642,13 +670,27 @@
     }
   };
 
-  zmEditorProto.prototype.speechRecognitionSoundStart = function (data) {    console.log(data);  };
-  zmEditorProto.prototype.speechRecognitionSoundEnd = function (data) {    console.log(data);  };
-  zmEditorProto.prototype.speechRecognitionSpeechStart = function (data) {    console.log(data);  };
-  zmEditorProto.prototype.speechRecognitionSpeechEnd = function (data) {    console.log(data);  };
-  zmEditorProto.prototype.speechRecognitionAudioStart = function (data) {    console.log(data);  };
-  zmEditorProto.prototype.speechRecognitionAudioEnd = function (data) {    console.log(data);  };
-  zmEditorProto.prototype.speechRecognitionNoMatch = function (data) {    console.log(data);  };
+  zmEditorProto.prototype.speechRecognitionSoundStart = function(data) {
+    console.log(data);
+  };
+  zmEditorProto.prototype.speechRecognitionSoundEnd = function(data) {
+    console.log(data);
+  };
+  zmEditorProto.prototype.speechRecognitionSpeechStart = function(data) {
+    console.log(data);
+  };
+  zmEditorProto.prototype.speechRecognitionSpeechEnd = function(data) {
+    console.log(data);
+  };
+  zmEditorProto.prototype.speechRecognitionAudioStart = function(data) {
+    console.log(data);
+  };
+  zmEditorProto.prototype.speechRecognitionAudioEnd = function(data) {
+    console.log(data);
+  };
+  zmEditorProto.prototype.speechRecognitionNoMatch = function(data) {
+    console.log(data);
+  };
 
   zmEditorProto.prototype.speechRecognitionEnd = function (data) {
     console.log(data);
