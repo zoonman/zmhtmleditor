@@ -16,6 +16,11 @@ menu            { margin: 1.12em 0 }
 h5              { font-size: .83em; margin: 1.5em 0 }
 h6              { font-size: .75em; margin: 1.67em 0 }
 blockquote      {border-left: solid thick rgba(0,0,0,0.1); padding-left: 1em }
-img {max-width: 100%}
+img {max-width: 100%;height: auto;max-height: 95vh;width: auto}
 
-h1:before    {content: 'h1';color: #eeeeee;font-size: 0.3em}
+/* h1:before    {content: 'h1';color: #eeeeee;font-size: 0.3em} */
+
+table.classic   {border-collapse: collapse; border: solid 1px gray; max-width: 100%}
+table.classic th  {background-color: #eeeeee}
+
+#result td {font-family: Consolas, monospace;font-size: 11px;line-height: 11px}

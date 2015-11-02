@@ -51,6 +51,7 @@
           removeFormat: 'Remove Format',
           save: 'Save',
           attach: 'Attach',
+          goToUrl: 'Exit',
           uploading: '',
           recognition: 'Voice Recognition (experimental)',
           h1:'Header 1',
@@ -90,8 +91,8 @@
           {class: 'fa fa-table', command: 'table',
             menu: [
               {class: 'table', command: 'table', tag: 'p'},
-              {class: 'table', command: 'addRowAbove', tag: 'p'},
-              {class: 'table', command: 'addRowBelow', tag: 'p'},
+              //{class: 'table', command: 'addRowAbove', tag: 'p'},
+              //{class: 'table', command: 'addRowBelow', tag: 'p'},
               {class: 'table', command: 'addColumnBefore', tag: 'p'},
               {class: 'table', command: 'addColumnAfter', tag: 'p'},
               {class: 'table', command: 'deleteCurrentRow', tag: 'p'},
@@ -328,46 +329,168 @@
 
   zmEditorProto.prototype.insertColumn = function(position) {
     var table = this.getElementUnderCaret('TABLE');
+
+
+    var currentEl = this.getElementUnderCaret('TD') || this.getElementUnderCaret('TH');
+
+    console.log('getElementUnderCaret', currentEl );
+    console.log('position', position );
+
     if (table) {
-      var tHead = table.tHead;
-      if (tHead) {
-        for (var h = 0; h < tHead.rows.length; h++) {
-          var newTh = document.createElement('th');
-          tHead.rows[h].appendChild(newTh);
-        }
-      }
+      var tableGrid =[[]],  tgRow = 0, tgCol = 0;
 
-      var node = this.getElementUnderCaret('TD');
-      if (!node) {
-        node = this.getElementUnderCaret('TH');
-      }
-      var currentColumn = node.cellIndex;
-      console.log(currentColumn);
-
-      for (var b = 0, bl = table.tBodies.length; b < bl; b++) {
-        var tBody = table.tBodies[b], fakeCells = 0;
-        for (var i = 0; i < tBody.rows.length; i++) {
-          console.log('tBody.rows[i].cells.length',b,'it',i,  tBody.rows[i].cells.length);
-
-          var cellsToInsert = Math.min(currentColumn, tBody.rows[i].cells.length);
-          for (var c = 0; c < cellsToInsert ; c++) {
-            if (tBody.rows[i].cells[i].hasOwnProperty('rowsSpan')) {
-              fakeCells += tBody.rows[i].cells[i].hasOwnProperty('rowsSpan');
+      var fillTableGrid = function(tableGrid, tBodyRow, startRowIndex) {
+        var startCol = 0, cell, tgCol=0;
+        for (var bci = 0; bci < tBodyRow.cells.length; bci++) {
+          cell = tBodyRow.cells[bci];
+          // fill rows
+          for (tgRow = startRowIndex ; tgRow < startRowIndex + cell.rowSpan ; tgRow++) {
+            // fill columns
+            for (tgCol = startCol;tgCol < startCol + cell.colSpan; tgCol++) {
+              tableGrid[tgRow] = tableGrid[tgRow] || [];
+              var offset = 0;
+              while (tableGrid[tgRow][tgCol+offset]) {
+                offset++;
+              }
+              tableGrid[tgRow][tgCol+offset] = {
+                x: tgCol+offset,
+                y: tgRow,
+                row: startRowIndex,
+                cellIndex: bci,
+                rowIndex: cell.parentNode.rowIndex,
+                rowSpan: cell.rowSpan,
+                colSpan: cell.colSpan,
+                cell: cell,
+                text: cell.innerHTML,
+                realCell: tgRow == startRowIndex && tgCol - startCol == 0
+              };
             }
           }
+          startCol += cell.colSpan;
+        }
+      };
 
-          if (currentColumn < tBody.rows[i].cells.length) {
-            var newCell = tBody.rows[i].insertCell(currentColumn);
-            newCell.innerHTML = '&nbsp;';
-          } else {
-            var newCell = tBody.rows[i].insertCell(tBody.rows[i].cells.length);
-            newCell.innerHTML = '&nbsp;';
-
-          }
-
+      var tHead = table.tHead, tvCols = 0,tvRows = 0;
+      if (tHead) {
+        for (var tri = 0; tri < tHead.rows.length; tri++) {
+          var tHeadRow = tHead.rows[tri];
+          fillTableGrid(tableGrid, tHeadRow, tvRows);
+          tvRows++;
 
         }
       }
+      for (var b = 0, bl = table.tBodies.length; b < bl; b++) {
+        var tBody = table.tBodies[b], fakeCells = 0;
+        for (var bri = 0; bri < tBody.rows.length; bri++) {
+          var tBodyRow = tBody.rows[bri];
+          fillTableGrid(tableGrid, tBodyRow, tvRows);
+          tvRows++;
+        }
+      }
+
+      var tFoot = table.tFoot;
+      if (tFoot) {
+        for (var tfri = 0; tfri < tFoot.rows.length; tfri++) {
+          var tFootRow = tFoot.rows[tfri];
+          fillTableGrid(tableGrid, tFootRow, tvRows);
+          tvRows++;
+        }
+      }
+
+      var getGridCell = function(tableGrid, cell) {
+        var tgRow, tgCol,
+          x1 = -1, x2 = -1, y1 = -1, y2 = -1;
+        for (tgRow = 0; tgRow < tableGrid.length; tgRow++) {
+          for (tgCol=0;tgCol < tableGrid[tgRow].length; tgCol++) {
+            if (tableGrid[tgRow][tgCol].cell == cell) {
+              console.log('tableGrid[tgRow][tgCol]', tableGrid[tgRow][tgCol]);
+              if (x1 == -1) {
+                x1 = tgCol;
+              }
+              if (y1 == -1) {
+                y1 = tgRow;
+              }
+              x2 = tgCol;
+              y2 = tgRow;
+            }
+          }
+        }
+        return {
+          cell: cell,
+          x1 : x1,
+          y1 : y1,
+          x2 : x2,
+          y2 : y2
+        }
+      };
+
+      var html = '<table border="1" style="border-collapse: collapse">';
+      for (tgRow = 0; tgRow < tableGrid.length; tgRow++) {
+        html += '<tr>';
+        for (tgCol=0;tgCol < tableGrid[tgRow].length; tgCol++) {
+          html += '<td> ' + JSON.stringify(tableGrid[tgRow][tgCol], '', '<br>') + ' </td>';
+        }
+        html += '</tr>';
+      }
+      html += '</table>';
+
+      // this.getContentDocument().getElementById('result').innerHTML = html;
+
+      // console.log('tg', tableGrid, 'tvRows:',tvRows, 'tvCols:', tvCols);
+
+
+      var currentCellIndex = currentEl.cellIndex, currentRowIndex = currentEl.parentNode.rowIndex;
+      var gridRange = getGridCell(tableGrid, currentEl);
+      console.log('gridRange', gridRange);
+
+      var insertTableCellBeforePosition = function (position) {
+        // insert cell before cellPosition in cellNode
+        var insertCellBefore = function (cellNode, cellPosition) {
+          var newCell;
+          if (cellNode.parentNode.parentNode.nodeName == 'THEAD') {
+            newCell = document.createElement('th');
+            cellNode.parentNode.insertBefore(newCell, cellNode.parentNode.children[cellPosition]);
+          } else {
+            if (cellPosition >= cellNode.parentNode.cells.length) {
+              cellPosition = cellNode.parentNode.cells.length;
+            }
+            newCell = cellNode.parentNode.insertCell(cellPosition)
+          }
+          newCell.innerHTML = '&nbsp;';
+          return newCell;
+        };
+        // find out X
+        var cellBeforeInsertX;
+        if (position == -1) { // insert column from the left relatively current column
+          cellBeforeInsertX = gridRange.x1;
+        } else {
+          cellBeforeInsertX = gridRange.x2+1;
+        }
+        for (tgRow = 0; tgRow < tableGrid.length; tgRow++) {
+          if (cellBeforeInsertX == 0 || !tableGrid[tgRow][cellBeforeInsertX]) {
+            insertCellBefore(tableGrid[tgRow][0].cell, cellBeforeInsertX);
+          } else {
+            if (tableGrid[tgRow][cellBeforeInsertX].realCell) {
+              insertCellBefore(tableGrid[tgRow][cellBeforeInsertX].cell, tableGrid[tgRow][cellBeforeInsertX].cellIndex);
+            } else {
+              if (tableGrid[tgRow][cellBeforeInsertX].cell.rowSpan == 1) {
+                tableGrid[tgRow][cellBeforeInsertX].cell.colSpan += 1;
+              } else {
+                if (tableGrid[tgRow-1] && tableGrid[tgRow-1][cellBeforeInsertX].cell != tableGrid[tgRow][cellBeforeInsertX].cell) {
+                  tableGrid[tgRow][cellBeforeInsertX].cell.colSpan += 1;
+                } else {
+                  if (tableGrid[tgRow][cellBeforeInsertX-1].realCell && (!tableGrid[tgRow][cellBeforeInsertX].realCell)) {
+                    insertCellBefore(tableGrid[tgRow][cellBeforeInsertX-1].cell, tableGrid[tgRow][cellBeforeInsertX].cellIndex);
+                  }
+                }
+              }
+            }
+          }
+        }
+      };
+
+      insertTableCellBeforePosition(position);
+
     }
   };
 
@@ -544,7 +667,8 @@
     //this.getIframe().contentWindow.focus();
 
     var contentDocument = this.getContentDocument();
-        contentDocument.execCommand('insertHTML', false, this.initHtml);
+
+
 
 
     var buttons = document.getElementsByClassName('command');
@@ -597,6 +721,10 @@
       heads[0].appendChild(link);
     }
 
+
+//    console.log(contentDocument.execCommand('insertHTML', false, this.initHtml));
+    contentDocument.querySelector('body').innerHTML = this.initHtml;
+
     contentDocument.addEventListener('keydown', this.keydownHandler.bind(this), false);
     window.setInterval(this.saveDocument.bind(this), 2718); // let's make check interval close to e
 
@@ -605,15 +733,20 @@
     }.bind(this), 100);
   };
 
+  zmEditorProto.prototype.setSaveButtonColor = function(color) {
+    //console.log('color', color);
+    document.getElementById('cmd' + this.iframeId + 'save').style.color = color;
+  };
+
   zmEditorProto.prototype.saveDocument = function() {
     if (this.saved || this.saving) {
       // gray out save icon on toolbar
-      document.getElementById('cmd' + this.iframeId + 'save').style.color = 'gray';
+      this.setSaveButtonColor('gray');
     } else {
       this.saving = true;
       this.save('', this.documentSaved.bind(this));
       // update toolbar
-      document.getElementById('cmd' + this.iframeId + 'save').style.color = 'blue';
+      this.setSaveButtonColor('blue');
     }
   };
 
@@ -621,8 +754,7 @@
     this.saved = true;
     this.saving = false;
     // update toolbar
-    document.getElementById('cmd' + this.iframeId + 'save').style.color = 'gray';
-
+    this.setSaveButtonColor('gray');
   };
 
   zmEditorProto.prototype.keydownHandler = function (event) {
@@ -881,10 +1013,14 @@
     formData.append('file', this.getContentDocument().documentElement.outerHTML );
     formData.append('caretPosition', this.getCaretPosition() );
     xhr.addEventListener('load', function() {
-      if (xhr.status === 200) {
-        done();
-      } else {
-        done();
+      console.log('done', typeof done)
+      if (typeof done === 'function') {
+        if (xhr.status === 200) {
+          done();
+        } else {
+          done();
+        }
+
       }
     }, false);
     xhr.open('POST', this.options.uploadUrl);

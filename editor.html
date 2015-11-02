@@ -30,7 +30,251 @@
 
   <h1>Welcome to WYSIWYG HTML Editor!</h1>
 
+  <p>table 1</p>
+  <table border="1" width="80%" class="classic">
 
+    <tbody>
+      <tr>
+        <td>1a</td>
+        <td>b</td>
+        <td>c</td>
+        <td>d</td>
+      </tr>
+      <tr>
+        <td colspan="2">2a</td>
+
+        <td>c</td>
+        <td>d</td>
+      </tr>
+      <tr>
+        <td>3a</td>
+        <td>b</td>
+        <td>c</td>
+        <td>d</td>
+      </tr>
+      <tr>
+        <td>4a</td>
+        <td rowspan="2">b</td>
+        <td>c</td>
+        <td>d</td>
+      </tr>
+      <tr>
+        <td>5a</td>
+        <td>c</td>
+        <td>d</td>
+      </tr>
+    </tbody>
+
+  </table>
+
+
+
+
+<h2>processed</h2>
+
+
+  <div id="result">
+
+  </div>
+
+
+  <hr>
+
+  <p>t2</p>
+  <table border="1" width="80%" class="classic">
+    <thead>
+    <tr>
+      <th>01</th>
+      <th>2</th>
+      <th>3</th>
+      <th>4</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+      <td>1a</td>
+      <td>b</td>
+      <td>c</td>
+      <td>d</td>
+    </tr>
+    <tr>
+      <td colspan="2">2a</td>
+
+      <td>c</td>
+      <td>d</td>
+    </tr>
+    <tr>
+      <td>3a</td>
+      <td>b</td>
+      <td>c</td>
+      <td>d</td>
+    </tr>
+    <tr>
+      <td>4a</td>
+      <td rowspan="2">b</td>
+      <td>c</td>
+      <td>d</td>
+    </tr>
+    <tr>
+      <td>5a</td>
+
+      <td>c</td>
+      <td>d</td>
+    </tr>
+    </tbody>
+    <tfoot>
+    <tr>
+      <td>6a</td>
+      <td>b</td>
+      <td>c</td>
+      <td>d</td>
+    </tr>
+    </tfoot>
+  </table>
+
+  <table border="1" width="80%" class="classic">
+    <thead>
+    <tr>
+      <th>01</th>
+      <th>2</th>
+      <th>3</th>
+      <th>4</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+      <td>1a</td>
+      <td>b</td>
+      <td>c</td>
+      <td>d</td>
+    </tr>
+    <tr>
+      <td colspan="2">2a</td>
+
+      <td>c</td>
+      <td>d</td>
+    </tr>
+    <tr>
+      <td>3a</td>
+      <td>b</td>
+      <td>c</td>
+      <td>d</td>
+    </tr>
+    <tr>
+      <td>4a</td>
+      <td rowspan="3" colspan="2">bhc</td>
+      <td>d</td>
+    </tr>
+    <tr>
+      <td>5a</td>
+      <td>d</td>
+    </tr>
+    <tr>
+      <td>6a</td>
+      <td>d</td>
+
+    </tr>
+    </tbody>
+  </table>
+
+  <p>t2</p>
+  <table border="1" width="80%" class="classic">
+    <thead>
+    <tr>
+      <th>01</th>
+      <th>2</th>
+      <th>3</th>
+      <th>4</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+      <td>1a</td>
+      <td>b</td>
+      <td>c</td>
+      <td>d</td>
+    </tr>
+    <tr>
+      <td colspan="2">2a</td>
+
+      <td>c</td>
+      <td>d</td>
+    </tr>
+    <tr>
+      <td>3a</td>
+      <td>b</td>
+      <td>c</td>
+      <td>d</td>
+    </tr>
+    <tr>
+      <td>4a</td>
+      <td rowspan="2">b</td>
+      <td>c</td>
+      <td>d</td>
+    </tr>
+    <tr>
+      <td>5a</td>
+
+      <td>c</td>
+      <td>d</td>
+    </tr>
+    </tbody>
+    <tfoot>
+    <tr>
+      <td>6a</td>
+      <td>b</td>
+      <td>c</td>
+      <td>d</td>
+    </tr>
+    </tfoot>
+  </table>
+<p>|</p>
+  <table border="1" width="80%" class="classic">
+    <thead>
+    <tr>
+      <th>01</th>
+      <th>2</th>
+      <th>3</th>
+      <th>4</th>
+      <th>5</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+      <td>1a</td>
+      <td>b</td>
+      <td>c</td>
+      <td>d</td>
+      <td>e</td>
+    </tr>
+    <tr>
+      <td colspan="2">2a</td>
+      <td>c</td>
+      <td colspan="2">d</td>
+    </tr>
+    <tr>
+      <td>3a</td>
+      <td>b</td>
+      <td>c</td>
+      <td>d</td>
+      <td>e</td>
+    </tr>
+    <tr>
+      <td>4a</td>
+      <td rowspan="3" colspan="3">bhc</td>
+      <td>e</td>
+    </tr>
+    <tr>
+      <td>5a</td>
+      <td>e</td>
+    </tr>
+    <tr>
+      <td>6a</td>
+      <td>e</td>
+
+    </tr>
+    </tbody>
+  </table>
 
 </div>
 
