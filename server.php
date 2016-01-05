@@ -30,17 +30,36 @@ $results = array();
 if (!empty($_FILES)) {
     foreach($_FILES as $file) {
         $ext = pathinfo(strtolower($file['name']), PATHINFO_EXTENSION);
+        $name = pathinfo(strtolower($file['name']), PATHINFO_FILENAME);
         if (in_array($ext, $extensionsWhiteList)) {
             // server path
             $targetFilePath = $uploadDirectory . basename($file['name']);
             // file url, can be absolute or something else
             $targetFileUrl = $uploadDirectory . basename($file['name']);
-            $results[] = array(
-                'result' => move_uploaded_file($file['tmp_name'], $targetFilePath),
-                'name' => $file['name'],
-                'type' => $file['type'],
-                'url' => $targetFileUrl
-            );
+
+            $result = ['result' => false];
+            if (move_uploaded_file($file['tmp_name'], $targetFilePath)) {
+                $result = [
+                    'result' => true,
+                    'name' => $name,
+                    'type' => $file['type'],
+                    'url' => $targetFileUrl
+                ];
+                if (in_array($ext, ['png', 'jpg', 'jpeg', 'gif'])) {
+                    // $result = array_merge($result, getimagesize($targetFilePath));
+                    $imgsize = getimagesize($targetFilePath);
+                    if ($imgsize) {
+                        $result['width'] = $imgsize[0];
+                        $result['height'] = $imgsize[1];
+                        $result['bits'] = $imgsize['bits'];
+                        $result['mime'] = $imgsize['mime'];
+                    }
+
+                }
+            }
+
+
+            $results[] = $result;
         }
     }
 }
@@ -49,4 +68,4 @@ if (!empty($_POST)) {
     $results[] = $_POST;
 }
 
-echo json_encode($results, JSON_FORCE_OBJECT);
+echo json_encode(['files' => $results], JSON_FORCE_OBJECT);

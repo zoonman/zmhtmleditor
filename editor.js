@@ -64,6 +64,7 @@
           blockquote:'Blockquote',
           paragraph:'Normal'
         },
+        imageWidthThreshold: 299, // don't insert as inline
         toolbarConfig: [
           {
             class: 'fa fa-header combo', command: 'style',
@@ -141,10 +142,10 @@
       speechRecognitionEngine = window.SpeechRecognition;
     }
     if ('webkitSpeechRecognition' in window) {
-      speechRecognitionEngine = window['webkitSpeechRecognition'];
+      speechRecognitionEngine = window.webkitSpeechRecognition;
     }
     if ('mozSpeechRecognition' in window) {
-      speechRecognitionEngine = window['mozSpeechRecognition'];
+      speechRecognitionEngine = window.mozSpeechRecognition;
     }
 
     if (speechRecognitionEngine) {
@@ -899,7 +900,7 @@
     var fu = this;
     fu.id = 'uploader' + Math.random().toString().replace('0.', '');
 
-    console.log(file.constructor.name);
+    // console.log(file.constructor.name);
 
     // create layout
     var uHtml = '';
@@ -981,25 +982,37 @@
   }
 
   zmEditorProto.prototype.uploadFileDone = function(results) {
-    for (var i in results) {
-      if (results.hasOwnProperty(i)) {
-        var result = results[i];
-        switch (result.type) {
-          case 'image/png':
-          case 'image/gif':
-          case 'image/jpg':
-          case 'image/jpeg':
-          case 'image/pjpeg':
-            this.getContentDocument()
-                .execCommand('insertImage', false, result.url);
-            break;
-          default:
-            var html = ' <a href="' + result.url + '" target="_blank">' +
-                result.name + '</a>&nbsp;';
-            this.getContentDocument().execCommand('insertHTML', false, html);
+    var html = '';
+    if (results.hasOwnProperty('files')) {
+      for (var i in results.files) {
+        if (results.files.hasOwnProperty(i)) {
+          var result = results.files[i];
+          switch (result.type) {
+            case 'image/png':
+            case 'image/gif':
+            case 'image/jpg':
+            case 'image/jpeg':
+            case 'image/pjpeg':
+                if (result.hasOwnProperty('width') && result.width > this.options.imageWidthThreshold) {
+                  html = '<p class="illustration">' +
+                      '<a href="' + result.url + '" target="_blank">' +
+                      '<img src="' + result.url + '" alt="' + result.name +
+                      '" class="img-responsive" /></a></p>';
+                  this.getContentDocument().execCommand('insertHTML', false, html);
+                } else {
+                  this.getContentDocument()
+                      .execCommand('insertImage', false, result.url);
+                }
+              break;
+            default:
+              html = ' <a href="' + result.url + '" target="_blank">' +
+                  result.name + '</a>&nbsp;';
+              this.getContentDocument().execCommand('insertHTML', false, html);
+          }
         }
       }
     }
+
   };
 
   zmEditorProto.prototype.uploadFile = function(file, done) {
@@ -1013,7 +1026,7 @@
     formData.append('file', this.getContentDocument().documentElement.outerHTML );
     formData.append('caretPosition', this.getCaretPosition() );
     xhr.addEventListener('load', function() {
-      console.log('done', typeof done)
+      // console.log('done', typeof done);
       if (typeof done === 'function') {
         if (xhr.status === 200) {
           done();
