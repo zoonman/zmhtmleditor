@@ -125,7 +125,8 @@
         ],
       uploadUrl: window.location.protocol + '//' + window.location.host + '/server.php',
       goToUrl: window.location.protocol + '//' + window.location.host + '/',
-      customCssUrl: 'custom.css'
+      customCssUrl: 'custom.css',
+      caretPosition: 1
     };
 
     function extend(a, b) {
@@ -582,6 +583,214 @@
     this.hideDropTarget();
   };
 
+  function removeTags(targetNode, tagList)
+  {
+    if (targetNode.hasChildNodes()) {
+
+      for (var i = 0; i < targetNode.childNodes.length; i++) {
+        if (targetNode.childNodes[i].hasChildNodes()) {
+          removeTags(targetNode.childNodes[i], tagList);
+        } else {
+          if (tagList.indexOf(targetNode.childNodes[i].nodeName) != -1) {
+            targetNode.removeChild(targetNode.childNodes[i]);
+          }
+        }
+      }
+    }
+  }
+
+  function removeClasses(targetNode, classList)
+  {
+    if (targetNode.hasChildNodes()) {
+      for (var i = 0; i < targetNode.childNodes.length; i++) {
+        if (targetNode.childNodes[i].hasChildNodes()) {
+          removeClasses(targetNode.childNodes[i], classList);
+        } else {
+          for (var c = 0;c < classList.length; c++) {
+
+            if (targetNode.childNodes[i].nodeType == Node.ELEMENT_NODE) {
+              //console.log('cl', targetNode.childNodes[i])
+
+              targetNode.childNodes[i].classList.remove(classList[c]);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  function cleanupTextAfterPaste(targetNode) {
+    var dropTags = ['STYLE', 'SCRIPT', 'IFRAME'];
+    var classList = ['MsoNormal', 'MsoSubtitle', 'MsoBodyText', 'MsoHeader'];
+    var attrWhiteList = ['align', 'href', 'src', 'width', 'height', 'alt', 'title', 'type', 'border', 'class',
+      'valign',
+      'colspan',
+      'rowspan',
+      'target',
+      'srcset',
+      'name',
+      'for',
+      'id',
+      'id',
+    ];
+    if (targetNode.hasChildNodes()) {
+      //console.log('targetNode', targetNode);
+      for (var i = 0; i < targetNode.childNodes.length; i++) {
+        var cNode = targetNode.childNodes[i];
+        if (cNode.hasChildNodes()) {
+          cleanupTextAfterPaste(cNode);
+        }
+        {
+
+          if (cNode.nodeType == Node.ELEMENT_NODE) {
+
+            if (dropTags.indexOf(cNode.nodeName) > -1) {
+              targetNode.removeChild(cNode);
+              continue;
+            }
+
+            if (cNode.nodeName === 'IMG') {
+              if (cNode.hasAttribute('src')) {
+                if (cNode.getAttribute('src').indexOf('file://') !== -1 ||
+                  (
+                    cNode.getAttribute('src').indexOf( '://') > -1 &&
+                    cNode.getAttribute('src').indexOf( window.location.hostname) === -1
+                  )
+                ) {
+                  targetNode.removeChild(cNode);
+                  continue;
+                }
+              }
+            }
+
+            //console.log('cNode', cNode);
+            // cleanup classes
+            for (var c = 0; c < classList.length; c++) {
+              cNode.classList.remove(classList[c]);
+            }
+            // remove not whitelisted attributes
+            if (cNode.hasAttributes()) {
+              for (var a in cNode.attributes) {
+                if (cNode.attributes.hasOwnProperty(a)) {
+                   //console.log('cNode.attributes[a].name:', cNode.attributes[a].name);
+                  if (attrWhiteList.indexOf(cNode.attributes[a].name) == -1) {
+                    //console.log(cNode.attributes[a].name);
+                    cNode.attributes[a].value = '';
+                    cNode.removeAttribute(cNode.attributes[a].name);
+                  }
+                }
+
+              }
+            }
+
+          } else if (cNode.nodeType == Node.TEXT_NODE) {
+            // good class
+            var rules = [
+              {
+                s: /--/g,
+                r: '—'
+              },
+              {
+                s: /(\s+|\b|\;)?(-|–)(\s+)/g,
+                r: '$1—$3'
+              },
+              {
+                s: /(\s+)\,/g,
+                r: ', '
+              },
+              {
+                s: /(\s+)\.(\s+)/g,
+                r: '. '
+              },
+              {
+                s: /(\s|\b)?\.\.\./g,
+                r: '… '
+              },
+              {
+                s: /\s\s+/g,
+                r: ' '
+              }
+
+
+
+            ];
+
+              for (var r = 0; r < rules.length; r++) {
+                cNode.nodeValue = cNode.nodeValue.replace(rules[r].s, rules[r].r);
+              }
+
+
+          } else {
+            // remove all non-regular nodes, comments and other crap
+            targetNode.removeChild(cNode);
+          }
+        }
+      }
+    }
+  }
+
+  function cleanupUselessElements(targetNode)
+  {
+    var uselessElements = ['SPAN', 'FONT', 'FORM', 'BASEFONT', 'CENTER', 'DIR', 'ISINDEX', 'MENU', 'DIV', 'FOOTER', 'HEADER'];
+    if (targetNode.hasChildNodes()) {
+
+      console.log('targetNode', targetNode);
+
+      // recursive call
+      for (var cn in targetNode.childNodes) {
+        if (targetNode.childNodes.hasOwnProperty(cn)) {
+          cleanupUselessElements(targetNode.childNodes[cn]);
+        }
+      }
+      // it is useless element
+      if (uselessElements.indexOf(targetNode.nodeName) > -1) {
+        // we have some children
+        if (targetNode.hasChildNodes()) {
+          // move all childs to parent node
+          for (var nn in targetNode.childNodes) {
+            if (targetNode.childNodes.hasOwnProperty(nn)) {
+              //console.log('targetNode.childNodes[nn]', targetNode.childNodes[nn])
+              targetNode.parentNode.insertBefore(
+                targetNode.removeChild(targetNode.childNodes[nn]),
+                targetNode
+              );
+            }
+          }
+        }
+        if (targetNode.hasChildNodes() && targetNode.childNodes.length > 0) {
+          //console.log('childNodes', targetNode.childNodes);
+          cleanupUselessElements(targetNode);
+        } else {
+          // now we are ok to remove the node
+          targetNode.parentNode.removeChild(targetNode);
+        }
+      }
+    } else {
+      // this element is useless and can be safely removed because it doesn't have any children
+      if (uselessElements.indexOf(targetNode.nodeName) !== -1) {
+        targetNode.parentNode.removeChild(targetNode);
+      }
+    }
+  }
+
+  zmEditorProto.prototype.pasteHandler = function(e) {
+    //console.log(e);
+    if (e.target) {
+      var targetNode = e.target;
+
+      setTimeout(function() {
+        cleanupTextAfterPaste(this.getElementUnderCaret('BODY'));
+        cleanupUselessElements(this.getElementUnderCaret('BODY'));
+        //
+        this.saved = false;
+        this.saveDocument();
+
+      }.bind(this), 100);
+
+    }
+    //this.hideDropTarget();
+  };
+
   zmEditorProto.prototype.buttonClickHandler = function(clickEvent) {
     if (clickEvent) {
       clickEvent.preventDefault();
@@ -669,9 +878,6 @@
 
     var contentDocument = this.getContentDocument();
 
-
-
-
     var buttons = document.getElementsByClassName('command');
     for (var i= 0, l = buttons.length; i < l; i++) {
       if (buttons.hasOwnProperty(i)) {
@@ -712,6 +918,7 @@
     contentDocument.addEventListener('dragleave', this.hideDropTarget.bind(this), false);
 
     contentDocument.addEventListener('drop', this.dropHandler.bind(this), false);
+    contentDocument.addEventListener('paste', this.pasteHandler.bind(this), false);
 
     var heads = contentDocument.getElementsByTagName('head');
     if (this.options.customCssUrl && heads.length > 0) {
